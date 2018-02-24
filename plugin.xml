@@ -1,0 +1,20 @@
+<library path="lib/libvrep_test">
+  <class name="MyPlugin" type="vrep_test::MyPlugin" base_class_type="rqt_gui_cpp::Plugin">
+    <description>
+      A great user interface.
+    </description>
+    <qtgui>
+      <!-- optional grouping...
+      <group>
+        <label>Group</label>
+      </group>
+      <group>
+        <label>Subgroup</label>
+      </group>
+      -->
+      <label>My first C++ Plugin</label>
+      <icon type="theme">system-help</icon>
+      <statustip>Great user interface to provide real value.</statustip>
+    </qtgui>
+  </class>
+</library>
