@@ -117,6 +117,8 @@ void MyPlugin::shutdownPlugin()
   LeftHandJointTargetPositionPublisher.shutdown();
   RightHandJointTargetPositionPublisher.shutdown();
   ModeChangePublisher.shutdown();
+  JointVisualizationPublisher.shutdown();
+  TwistPublisher.shutdown();
 }
 
 void MyPlugin::saveSettings(qt_gui_cpp::Settings& plugin_settings, qt_gui_cpp::Settings& instance_settings) const

@@ -12,9 +12,9 @@
         <label>Subgroup</label>
       </group>
       -->
-      <label>My first C++ Plugin</label>
+      <label>XR1_VREP</label>
       <icon type="theme">system-help</icon>
-      <statustip>Great user interface to provide real value.</statustip>
+      <statustip>XR1 plugin for demonstration</statustip>
     </qtgui>
   </class>
 </library>
