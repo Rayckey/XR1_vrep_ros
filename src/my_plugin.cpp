@@ -9,6 +9,7 @@
 #include "vrep_test/HandJointAngles.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/Int32.h"
+#include "geometry_msgs/Twist.h"
 #include <QTimer>
 #include <QMessageBox>
 #include <QLabel>
@@ -98,6 +99,11 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   for (int i = 0 ; i < HandPositionSliders[0].size() ; i++ ) connect(HandPositionSliders[0][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
   for (int i = 0 ; i < HandPositionSliders[1].size() ; i++ ) connect(HandPositionSliders[1][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
 
+  //Steering
+  TwistPublisher = getNodeHandle().advertise<geometry_msgs::Twist>("/XR1/Base/cmd",10);
+  connect((ui_.Twist_Z),SIGNAL(valueChanged(int)),this,SLOT(onSteeringValueChanged(int)));
+  connect((ui_.Twist_Y),SIGNAL(valueChanged(int)),this,SLOT(onSteeringValueChanged(int)));
+  connect((ui_.Twist_X),SIGNAL(valueChanged(int)),this,SLOT(onSteeringValueChanged(int)));
 }
 
 void MyPlugin::shutdownPlugin()
@@ -611,8 +617,20 @@ void MyPlugin::onJointRotationVisualizationFinish(){
   QSlider * slider = (QSlider *) sender();
   std_msgs::Int32 msg;
   msg.data = -1;
-  JointVisualizationPublisher.publish(msg);
+  JointVisualizationPublisher.publish(msg); 
 }
+
+
+void MyPlugin::onSteeringValueChanged(int){
+  geometry_msgs::Twist msg;
+  msg.linear.x = ((double)ui_.Twist_X->value() - 50.)*0.005;
+  msg.linear.y = ((double)ui_.Twist_Y->value() - 50.)*0.005;
+  msg.angular.z = ((double)ui_.Twist_Z->value() - 50.)*0.05;
+
+  TwistPublisher.publish(msg);
+}
+  
+
 } // namespace
 
 

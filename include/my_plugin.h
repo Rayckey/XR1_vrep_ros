@@ -66,6 +66,7 @@ protected slots:
   void onJointTargetPositionChanged(int i);
   void onJointRotationVisualization();
   void onJointRotationVisualizationFinish();
+  void onSteeringValueChanged(int);
 
 
 private:
@@ -80,6 +81,7 @@ private:
   ros::Publisher LeftHandJointTargetPositionPublisher;
   ros::Publisher RightHandJointTargetPositionPublisher;
   ros::Publisher JointVisualizationPublisher;
+  ros::Publisher TwistPublisher;
   ros::Subscriber JointCurrentPositionSubscriber;
   std::vector<double> currentPosition;
   image_transport::Subscriber CameraSubscriber;
