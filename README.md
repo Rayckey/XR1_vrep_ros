@@ -37,7 +37,7 @@ $ ./vrep.sh
 
 ##Inverse Kinematics (Generated in V-REP)
 5. Switch to Inverse Kinematics Mode by changing the combobox next to the `Start Simulation` button
-6. The Right Hand Side allow manipulation of the End Effector
+6. The Right Hand Side allow manipulation of the End Effector OR just manipulate the `Left_Tip_Target` or `Right_Tip_Target` Dummies on V-REP simulation
 
 ##Finger Manipulation
 7. The lower Group allow simple finger control
@@ -45,6 +45,13 @@ $ ./vrep.sh
 ##Record and Play
 8. Use `rqt_bag` for publiher recording and playing
 
+##Vision Sensors
+9. Click `Refresh` to detect all publishing images
+
+
+
+###Known Issues
+1. Twist commands not processing correctly
 
 # XR1_vrep_ros
 
