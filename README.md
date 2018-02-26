@@ -18,7 +18,7 @@ $ catkin build
 $ rqt
 ```
 	and find XR1_VREP in plugins
-	or
+	or just
 ```
 $ rqt --standalone vrep_test
 ```
