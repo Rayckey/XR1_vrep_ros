@@ -625,9 +625,9 @@ void MyPlugin::onJointRotationVisualizationFinish(){
 
 void MyPlugin::onSteeringValueChanged(int){
   geometry_msgs::Twist msg;
-  msg.linear.x = ((double)ui_.Twist_X->value() - 50.)*0.005;
-  msg.linear.y = ((double)ui_.Twist_Y->value() - 50.)*0.005;
-  msg.angular.z = ((double)ui_.Twist_Z->value() - 50.)*0.05;
+  msg.linear.x = ((double)ui_.Twist_X->value() - 50.)*0.02;
+  msg.linear.y = ((double)ui_.Twist_Y->value() - 50.)*0.02;
+  msg.angular.z = ((double)ui_.Twist_Z->value() - 50.)*0.01;
 
   TwistPublisher.publish(msg);
 }
