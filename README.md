@@ -27,6 +27,7 @@ $ rqt --standalone vrep_test
 ### Running
 
 ## Joint Control
+0. Launch roscore
 1. Launch V-REP by going into the V-REP installation folder and type the following in a terminal
 ```
 $ ./vrep.sh

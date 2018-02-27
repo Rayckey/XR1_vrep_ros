@@ -10,6 +10,8 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   geometry_msgs
   cv_bridge
+  tf2
+  tf2_ros
 )
 
 if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
@@ -43,12 +45,14 @@ CATKIN_DEPENDS roscpp rqt_gui_cpp std_msgs message_runtime cv_bridge geometry_ms
 set (vrep_test_SRCS
   src/ratio_layouted_frame.cpp
   src/my_plugin.cpp
+  src/XR1.cpp
 
 )
 
 set(vrep_test_HDRS
   include/ratio_layouted_frame.h
   include/my_plugin.h
+  include/XR1.h
 
 )
 

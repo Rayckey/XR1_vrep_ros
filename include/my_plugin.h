@@ -13,6 +13,8 @@
 #include <QVector>
 #include <QTimer>
 #include "std_msgs/Bool.h"
+#include "XR1.h"
+#include <tf2_ros/transform_broadcaster.h>
 
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
@@ -83,6 +85,7 @@ private:
   ros::Publisher JointVisualizationPublisher;
   ros::Publisher TwistPublisher;
   ros::Subscriber JointCurrentPositionSubscriber;
+  XR1 * ptr_XR1;
   std::vector<double> currentPosition;
   image_transport::Subscriber CameraSubscriber;
   QVector<QLabel *> currentPositionLabels;

@@ -9,6 +9,7 @@
 #include "vrep_test/HandJointAngles.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/Int32.h"
+#include "XR1.h"
 #include "geometry_msgs/Twist.h"
 #include <QTimer>
 #include <QMessageBox>
@@ -18,7 +19,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "rosbag/bag.h"
-
+#include <tf2_ros/transform_broadcaster.h>
 
 
 #define PI 3.141592654
@@ -104,6 +105,10 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect((ui_.Twist_Z),SIGNAL(valueChanged(int)),this,SLOT(onSteeringValueChanged(int)));
   connect((ui_.Twist_Y),SIGNAL(valueChanged(int)),this,SLOT(onSteeringValueChanged(int)));
   connect((ui_.Twist_X),SIGNAL(valueChanged(int)),this,SLOT(onSteeringValueChanged(int)));
+
+  //GetTF
+  ptr_XR1 = new XR1();
+  // ptr_XR1->ActivateSubscriber(getNodeHandle());
 }
 
 void MyPlugin::shutdownPlugin()
@@ -185,9 +190,15 @@ void MyPlugin::subscribeJointCurrentPosition(const vrep_test::JointAngles& msg){
     currentPosition[19] = msg. Right_Wrist_Y;
 
     currentPosition[20] = msg. Right_Wrist_X;
+
+
+    ptr_XR1->subscribeJointCurrentPosition(msg);
 }
 
 void MyPlugin::JointCurrentPositionRefresher(){
+
+  static   tf2_ros::TransformBroadcaster XR1TF;
+
   for (int i = 0; i < currentPosition.size(); i++){
     currentPositionLabels[i]->setText(QString::number(currentPosition[i],'g', 3));
     if(ui_.Mode_Combo->currentIndex() >0) targetPositionSliders[i]->setValue((currentPosition[i] + PI) / PI * 50.0);
