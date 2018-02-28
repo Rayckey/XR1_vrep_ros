@@ -12,21 +12,21 @@ XR1::XR1(){
 
 }
 
-std::vector<geometry_msgs::TransformStamped> XR1::tfConversion(double JointAngles[27]){
+std::vector<geometry_msgs::TransformStamped> XR1::tfConversion(double JointAngles[26]){
 
 
  const static char* args1[] = {
-  	"Base", "Knee" , "Back_Z" , "Back_X" , "Back_Y", "Neck_Z","Neck_X","Head"
+  	"Base", "Knee" , "Back_Z" , "Back_X" , "Back_Y", "Neck_Z","Neck_X","Head", "Head_Tip"
   };
-  const static std::vector<std::string> Torso_Frames_IDs(args1, args1 + 8);
+  const static std::vector<std::string> Torso_Frames_IDs(args1, args1 + 9);
 
   const static char* args2[] ={
-    "Back_Y","LS","LSX","LSY", "LEZ","LEX","LWZ","LWY","LWX","LEF"
+    "Neck_Z","LS","LSX","LSY", "LEZ","LEX","LWZ","LWY","LWX","LEF"
   };
     const static std::vector<std::string> Left_Arm_Frames_IDs(args2, args2 + 9);
 
   const static char* args3[] ={
-    "Back_Y","RS","RSX","RSY", "REZ","REX","RWZ","RWY","RWX","REF"
+    "Neck_Z","RS","RSX","RSY", "REZ","REX","RWZ","RWY","RWX","REF"
   };
     const static std::vector<std::string> Right_Arm_Frames_IDs(args3, args3 + 9);
 
@@ -45,7 +45,7 @@ std::vector<geometry_msgs::TransformStamped> XR1::tfConversion(double JointAngle
   // For Left Arm
   for(int i = 0; i <Left_Arm_Frames_IDs.size()-1; i++){
 
-  	int index = i + Torso_Frames_IDs.size();
+  	int index = i + Torso_Frames_IDs.size()-1;
   	 geometry_msgs::TransformStamped transformStamped = DH2tf(index, JointAngles[index]);
 
   	 // transformStamped.header.stamp = ros::Time::now();
@@ -56,7 +56,7 @@ std::vector<geometry_msgs::TransformStamped> XR1::tfConversion(double JointAngle
 
    // For Right Arm
   for(int i = 0; i <Right_Arm_Frames_IDs.size()-1; i++){
-  	int index = i + Torso_Frames_IDs.size() +Left_Arm_Frames_IDs.size();
+  	int index = i + Torso_Frames_IDs.size() +Left_Arm_Frames_IDs.size()-2;
   	geometry_msgs::TransformStamped transformStamped = DH2tf(index, JointAngles[index]);
 
   	// transformStamped.header.stamp = ros::Time::now();
@@ -85,11 +85,11 @@ double XR1::DHTableLookUp(const int row, const int col){
 
   	// d a alpha offset
 	const static double DHTable[numJoint*numPara] = {
-		l1, 0, -PI/2, -PI/2,
+	l1, 0, -PI/2, -PI/2,
     0, 0, PI/2, 0,
     l2, 0, -PI/2, 0,
     0, l3, -PI/2, -PI/2,
-    0, 0, -PI/2, -PI/2, // Back X
+    0, 0, -PI/2, -PI/2, // Back Y
     l4, 0 ,-PI/2, -PI/2, //Head Begins Here IDX = 5
     0, l5, -PI/2, -PI/2,
     0, 0, 0, 0,
@@ -145,10 +145,10 @@ void XR1::subscribeJointCurrentPosition(vrep_test::JointAngles msg){
 
   	static tf2_ros::TransformBroadcaster br;
 
-	double JointAngles[27] ={
+	double JointAngles[26] ={
   		0, msg.Knee, msg.Back_Z, msg.Back_X, msg.Back_Y, msg. Neck_Z, msg. Neck_X, msg. Head,
-		0, msg. Left_Shoulder_X, msg. Left_Shoulder_Y, msg. Left_Elbow_Z, msg. Left_Elbow_X, msg. Left_Wrist_Z, msg. Left_Wrist_Y, msg. Left_Wrist_X, 0,
-		0, msg. Right_Shoulder_X, msg. Right_Shoulder_Y, msg. Right_Elbow_Z, msg. Right_Elbow_X, msg. Right_Wrist_Z, msg. Right_Wrist_Y, msg. Right_Wrist_X, 0
+		0, 0, msg. Left_Shoulder_X, msg. Left_Shoulder_Y, msg. Left_Elbow_Z, msg. Left_Elbow_X, msg. Left_Wrist_Z, msg. Left_Wrist_Y, msg. Left_Wrist_X,
+		0, 0, msg. Right_Shoulder_X, msg. Right_Shoulder_Y, msg. Right_Elbow_Z, msg. Right_Elbow_X, msg. Right_Wrist_Z, msg. Right_Wrist_Y, msg. Right_Wrist_X
   	};
 
   	std::vector<geometry_msgs::TransformStamped> tfs =  tfConversion(JointAngles);
