@@ -9,6 +9,7 @@
 #include "vrep_test/HandJointAngles.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/Int32.h"
+#include "vrep_test/InertiaPara.h"
 #include "XR1.h"
 #include "geometry_msgs/Twist.h"
 #include <QTimer>
@@ -54,6 +55,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect(ui_.Start_Simulation, SIGNAL(clicked()),this,SLOT(onStartButtonClicked()));
   connect(ui_.Stop_Simulation, SIGNAL(clicked()),this,SLOT(onStopButtonClicked()));
   connect(ui_.Pause_Simulation, SIGNAL(clicked()),this,SLOT(onPauseButtonClicked()));
+  connect(ui_.Zero,SIGNAL(clicked()),this,SLOT(onZero()));
 
   // Get Joint Current Angles Subcribers under control
   // Linking the subcriber and refresher WILL crash the GUI
@@ -107,8 +109,23 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect((ui_.Twist_X),SIGNAL(valueChanged(int)),this,SLOT(onSteeringValueChanged(int)));
 
   //GetTF
-  ptr_XR1 = new XR1();
-  // ptr_XR1->ActivateSubscriber(getNodeHandle());
+  // ptr_XR1 = new XR1();
+
+  //Inertia Parameters Query
+  connect(ui_.InertiaParaQuery, SIGNAL(clicked()), this, SLOT(onInertiaParaClicked()));
+  InertiaParaClient = getNodeHandle().serviceClient<vrep_test::InertiaPara>("InertiaPara_Query");
+
+
+  //MakeShift Timer?
+  //LOL nevermind ros timer does not work in rqt
+  // ros::Timer just_timer = getNodeHandle().createTimer(ros::Duration(0.001),boost::bind(&MyPlugin::just_timer_callback,this));
+
+
+
+  //TODO Calculate torques and stuff
+
+  //TODO Gravity Compensation
+
 }
 
 void MyPlugin::shutdownPlugin()
@@ -192,12 +209,10 @@ void MyPlugin::subscribeJointCurrentPosition(const vrep_test::JointAngles& msg){
     currentPosition[20] = msg. Right_Wrist_X;
 
 
-    ptr_XR1->subscribeJointCurrentPosition(msg);
+    // ptr_XR1->subscribeJointCurrentPosition(msg);
 }
 
 void MyPlugin::JointCurrentPositionRefresher(){
-
-  static   tf2_ros::TransformBroadcaster XR1TF;
 
   for (int i = 0; i < currentPosition.size(); i++){
     currentPositionLabels[i]->setText(QString::number(currentPosition[i],'g', 3));
@@ -370,6 +385,7 @@ void MyPlugin::onStartButtonClicked(){
   SimulationStartPublisher.publish(data);
 
    updateTopicList();
+   onZero();
 }
 
 void MyPlugin::onStopButtonClicked(){
@@ -377,6 +393,7 @@ void MyPlugin::onStopButtonClicked(){
   data.data = true;
   SimulationStopPublisher.publish(data);
   ui_.image_frame->setImage(QImage());
+  onZero();
 }
 
 void MyPlugin::onPauseButtonClicked(){
@@ -384,6 +401,33 @@ void MyPlugin::onPauseButtonClicked(){
   data.data = true;
   SimulationPausePublisher.publish(data);
 }
+
+void MyPlugin::onZero(){
+
+  for(int i = 0 ; i < currentPositionLabels.size(); i++) currentPositionLabels[i]->setText("0.0");
+  for(int i = 0 ; i < targetPositionLabels.size(); i++) targetPositionLabels[i]->setText("0.0");
+  for(int i = 0 ; i < targetPositionSliders.size(); i++) targetPositionSliders[i]->setValue(50);
+  for(int i = 0 ; i < HandPositionSliders[0].size(); i++) HandPositionSliders[0][i]->setValue(0);
+  for(int i = 0 ; i < HandPositionSliders[1].size(); i++) HandPositionSliders[1][i]->setValue(0);
+
+  ui_.Twist_X->setValue(50);
+  ui_.Twist_Y->setValue(50);
+  ui_.Twist_Z->setValue(50);
+  
+  targetPositionSpinBox[0]->setValue(0.2);
+  targetPositionSpinBox[1]->setValue(0.0);
+  targetPositionSpinBox[2]->setValue(0.75);
+  targetPositionSpinBox[3]->setValue(0.0);
+  targetPositionSpinBox[4]->setValue(0.0);
+  targetPositionSpinBox[5]->setValue(0.0);
+  targetPositionSpinBox[6]->setValue(0.2);
+  targetPositionSpinBox[7]->setValue(0.0);
+  targetPositionSpinBox[8]->setValue(0.75);
+  targetPositionSpinBox[9]->setValue(0.0);
+  targetPositionSpinBox[10]->setValue(0.0);
+  targetPositionSpinBox[11]->setValue(0.0);
+}
+
 
 void MyPlugin::callbackImage(const sensor_msgs::Image::ConstPtr& msg){
   try
@@ -642,8 +686,18 @@ void MyPlugin::onSteeringValueChanged(int){
 
   TwistPublisher.publish(msg);
 }
-  
 
+void MyPlugin::onInertiaParaClicked(){
+  ros::ServiceClient client = getNodeHandle().serviceClient<vrep_test::InertiaPara>("/vrep_ros_interface/InertiaPara_Query");
+  // ptr_XR1->callInertiaPara(client);
+}
+
+void MyPlugin::just_timer_callback( ){
+  // ui_.counter->setText(QString::number(ros::Time::now().toSec(),'g', 3));
+  ROS_INFO("Callback triggered");
+}
+
+  
 } // namespace
 
 

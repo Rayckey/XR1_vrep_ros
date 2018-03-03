@@ -2,11 +2,14 @@
 #include <tf2/LinearMath/Quaternion.h>
 #include <geometry_msgs/TransformStamped.h>
 #include "vrep_test/JointAngles.h"
+#include "vrep_test/InertiaPara.h"
 #include "ros/ros.h"
 #include <tf2_ros/transform_broadcaster.h>
 
 
 #define PI 3.141592654
+#define numJoint 26
+#define numPara 4
 
 XR1::XR1(){
 
@@ -15,7 +18,7 @@ XR1::XR1(){
 std::vector<geometry_msgs::TransformStamped> XR1::tfConversion(double JointAngles[26]){
 
 
- const static char* args1[] = {
+  const static char* args1[] = {
   	"Base", "Knee" , "Back_Z" , "Back_X" , "Back_Y", "Neck_Z","Neck_X","Head", "Head_Tip"
   };
   const static std::vector<std::string> Torso_Frames_IDs(args1, args1 + 9);
@@ -70,8 +73,6 @@ std::vector<geometry_msgs::TransformStamped> XR1::tfConversion(double JointAngle
 }
 
 double XR1::DHTableLookUp(const int row, const int col){
-	const static int numJoint = 26;
-	const static int numPara = 4;
 	const static double la1 = 0.0478; 
 	const static double la2 = 0.2157 ; 
 	const static double la3 = 0.2160;
@@ -114,7 +115,7 @@ double XR1::DHTableLookUp(const int row, const int col){
 	};
 
 	if(row>=numJoint || col >= numPara) return -9999;
-	else return DHTable[row*4 + col];
+	else return DHTable[row*numPara + col];
 
  }
 
@@ -145,7 +146,7 @@ void XR1::subscribeJointCurrentPosition(vrep_test::JointAngles msg){
 
   	static tf2_ros::TransformBroadcaster br;
 
-	double JointAngles[26] ={
+	double JointAngles[numJoint] ={
   		0, msg.Knee, msg.Back_Z, msg.Back_X, msg.Back_Y, msg. Neck_Z, msg. Neck_X, msg. Head,
 		0, 0, msg. Left_Shoulder_X, msg. Left_Shoulder_Y, msg. Left_Elbow_Z, msg. Left_Elbow_X, msg. Left_Wrist_Z, msg. Left_Wrist_Y, msg. Left_Wrist_X,
 		0, 0, msg. Right_Shoulder_X, msg. Right_Shoulder_Y, msg. Right_Elbow_Z, msg. Right_Elbow_X, msg. Right_Wrist_Z, msg. Right_Wrist_Y, msg. Right_Wrist_X
@@ -156,6 +157,55 @@ void XR1::subscribeJointCurrentPosition(vrep_test::JointAngles msg){
   		tfs[i].header.stamp = ros::Time::now();
   		br.sendTransform(tfs[i]);
   	}
+
+}
+
+
+void XR1::callInertiaPara(ros::ServiceClient client){
+
+
+  const static char* args2[] ={
+    "_Shoulder_X","_Shoulder_Y", "_Elbow_Z","_Elbow_X","_Wrist_Z","_Wrist_Y","_Wrist_X"
+  };
+    const static std::vector<std::string> Arm_Frames_IDs(args2, args2 + 7);
+
+
+  const static char* args3[] ={
+    "_Shoulder_Body","_Arm_Body", "_Elbow_Body","_Forearm_Body","_Wrist_Body","_Wrist_Body2","_Hand_Body"
+  };
+    const static std::vector<std::string> Arm_Body_IDs(args2, args2 + 7);
+
+   	std::string pre_fix;
+   for (int i = 0; i < Arm_Body_IDs.size()*2; i++){
+   	vrep_test::InertiaPara srv;
+
+   	pre_fix = (i >= Arm_Body_IDs.size()) ? "Right" : "Left";
+  	srv.request.BaseLink = pre_fix + Arm_Frames_IDs[i%Arm_Body_IDs.size()];
+  	srv.request.ChildLink = pre_fix + Arm_Body_IDs[i%Arm_Body_IDs.size()];
+  	if (client.call(srv))
+  	{
+  		InertiaParameters[i*9 + 0] = srv.response.COM_X;
+  		InertiaParameters[i*9 + 1] = srv.response.COM_Y;
+		InertiaParameters[i*9 + 2] = srv.response.COM_Z;
+		InertiaParameters[i*9 + 3] = srv.response.I_XX;
+		InertiaParameters[i*9 + 4] = srv.response.I_XY;
+		InertiaParameters[i*9 + 5] = srv.response.I_XZ;
+		InertiaParameters[i*9 + 6] = srv.response.I_YX;
+		InertiaParameters[i*9 + 7] = srv.response.I_YY;
+		InertiaParameters[i*9 + 8] = srv.response.I_YZ;
+		InertiaParameters[i*9 + 9] = srv.response.I_ZX;
+		InertiaParameters[i*9 + 10] = srv.response.I_ZY;
+		InertiaParameters[i*9 + 11] = srv.response.I_ZZ;
+		InertiaParameters[i*9 + 12] = srv.response.M;
+  	}
+  	else
+  	{
+    	ROS_ERROR("Failed to call service InertiaPara");
+  	}
+
+
+   }
+
 
 }
 

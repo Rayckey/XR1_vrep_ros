@@ -1,0 +1,20 @@
+string BaseLink
+string ChildLink
+
+---
+
+float64 COM_X
+float64 COM_Y
+float64 COM_Z
+
+float64 I_XX
+float64 I_YY
+float64 I_ZZ
+float64 I_XY
+float64 I_YX
+float64 I_ZX
+float64 I_XZ
+float64 I_YZ
+float64 I_ZY
+
+float64 M

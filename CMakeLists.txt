@@ -31,6 +31,9 @@ endif()
  )
 
 
+add_service_files(DIRECTORY srv FILES InertiaPara.srv)
+
+
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
@@ -40,6 +43,7 @@ endif()
 catkin_package(
   LIBRARIES ${PROJECT_NAME}
 CATKIN_DEPENDS roscpp rqt_gui_cpp std_msgs message_runtime cv_bridge geometry_msgs image_transport
+  INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS}
 )
 
 set (vrep_test_SRCS
@@ -53,7 +57,6 @@ set(vrep_test_HDRS
   include/ratio_layouted_frame.h
   include/my_plugin.h
   include/XR1.h
-
 )
 
 set(vrep_test_UIS
@@ -74,6 +77,7 @@ include_directories(
 
  ${CMAKE_CURRENT_BINARY_DIR}/..
   ${catkin_INCLUDE_DIRS}
+  ${Eigen_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library

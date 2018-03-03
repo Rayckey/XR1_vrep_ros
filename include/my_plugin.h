@@ -43,6 +43,7 @@ public:
 
 
 
+  void just_timer_callback();
   // Comment in to signal that the plugin has a way to configure it
   //bool hasConfiguration() const;
   //void triggerConfiguration();
@@ -54,6 +55,8 @@ protected:
   QSet<QString> getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports);
   void selectTopic(const QString& topic);
   cv::Mat conversion_mat_;
+  int counter;
+  double actual_time;
 
 protected slots:
   virtual void sortLabelLists();
@@ -61,14 +64,17 @@ protected slots:
   virtual void sortSpinBoxLists();
   virtual void updateTopicList();
   virtual void sortHandSliderLists();
-  void onTopicChanged(int index);
-  void onModeChanged(int index);
-  void onIKTargetPositionChanged(double d);
-  void onHandJointTargetPositionChanged(int i);
-  void onJointTargetPositionChanged(int i);
-  void onJointRotationVisualization();
-  void onJointRotationVisualizationFinish();
-  void onSteeringValueChanged(int);
+  virtual void onTopicChanged(int index);
+  virtual void onModeChanged(int index);
+  virtual void onIKTargetPositionChanged(double d);
+  virtual void onHandJointTargetPositionChanged(int i);
+  virtual void onJointTargetPositionChanged(int i);
+  virtual void onJointRotationVisualization();
+  virtual void onJointRotationVisualizationFinish();
+  virtual void onSteeringValueChanged(int);
+  virtual void onInertiaParaClicked();
+  virtual void onZero();
+
 
 
 private:
@@ -85,6 +91,7 @@ private:
   ros::Publisher JointVisualizationPublisher;
   ros::Publisher TwistPublisher;
   ros::Subscriber JointCurrentPositionSubscriber;
+  ros::ServiceClient InertiaParaClient;
   XR1 * ptr_XR1;
   std::vector<double> currentPosition;
   image_transport::Subscriber CameraSubscriber;
@@ -98,6 +105,7 @@ private:
   bool pub_topic_custom_;
   QAction* hide_toolbar_action_;
   int num_gridlines_;
+  static double previous;
 
 
 private slots:

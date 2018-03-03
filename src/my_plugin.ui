@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1084</width>
-    <height>849</height>
+    <height>737</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -1357,6 +1357,19 @@
      </property>
     </item>
    </widget>
+   <widget class="QPushButton" name="Zero">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>90</y>
+      <width>181</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Zero</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QWidget" name="horizontalLayoutWidget">
    <property name="geometry">
@@ -2228,6 +2241,19 @@
      <string>Rotation Speed</string>
     </property>
    </widget>
+  </widget>
+  <widget class="QPushButton" name="InertiaParaQuery">
+   <property name="geometry">
+    <rect>
+     <x>910</x>
+     <y>320</y>
+     <width>151</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Query InertiaPara</string>
+   </property>
   </widget>
  </widget>
  <customwidgets>
