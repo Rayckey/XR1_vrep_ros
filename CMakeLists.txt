@@ -30,6 +30,7 @@ endif()
    JointVisualization.msg
  )
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Eigen3)
 
 add_service_files(DIRECTORY srv FILES InertiaPara.srv)
 
@@ -43,7 +44,7 @@ add_service_files(DIRECTORY srv FILES InertiaPara.srv)
 catkin_package(
   LIBRARIES ${PROJECT_NAME}
 CATKIN_DEPENDS roscpp rqt_gui_cpp std_msgs message_runtime cv_bridge geometry_msgs image_transport
-  INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS}
+  #INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS}
 )
 
 set (vrep_test_SRCS
@@ -77,7 +78,7 @@ include_directories(
 
  ${CMAKE_CURRENT_BINARY_DIR}/..
   ${catkin_INCLUDE_DIRS}
-  ${Eigen_INCLUDE_DIRS}
+  #${Eigen_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library

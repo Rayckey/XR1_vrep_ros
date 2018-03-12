@@ -6,7 +6,7 @@
 #include "ros/ros.h"
 #include "vrep_test/JointAngles.h"
 #include "vrep_test/InertiaPara.h"
-
+#include "Eigen/Dense"
 
 
 class XR1
@@ -18,10 +18,11 @@ public:
 
     void subscribeJointCurrentPosition(vrep_test::JointAngles msg);
     // void ActivateSubscriber(ros::NodeHandle nh);
-    // Eigen::Vector2d v;
+
     double InertiaParameters[26*13];
 
     void callInertiaPara(ros::ServiceClient client);
+    void InverseKinematics(std::vector<double> pos , double wrist_angle);
 private:
     std::vector<geometry_msgs::TransformStamped> tfConversion(double JointAngles [26]);
     double DHTableLookUp(const int row, const int col);

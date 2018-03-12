@@ -5,6 +5,7 @@
 #include "vrep_test/InertiaPara.h"
 #include "ros/ros.h"
 #include <tf2_ros/transform_broadcaster.h>
+#include "Eigen/Dense"
 
 
 #define PI 3.141592654
@@ -202,9 +203,43 @@ void XR1::callInertiaPara(ros::ServiceClient client){
   	{
     	ROS_ERROR("Failed to call service InertiaPara");
   	}
-
-
    }
+}
+
+void XR1::InverseKinematics(std::vector<double> pos , double wrist_angle){
+
+	Eigen::Vector3d Wrist_Desired_Poistion;
+	Eigen::Vector3d Wrist_Desired_Orientation;
+
+	for(int i = 0 ; i < 3; i++) Wrist_Desired_Poistion(i) = pos[i];
+	for(int i = 0 ; i < 3; i++) Wrist_Desired_Orientation(i) = pos[i+3];
+
+	//Names here are quite arbitrary, follow the notes instead
+	const static double la1 = 0.0478; 
+	const static double la2 = 0.2157 ; 
+	const static double la3 = 0.2160;
+
+  //Get the triangles
+	const static double arm_length = sqrt(la1*la1 + la2*la2);
+
+	double target_len = Wrist_Desired_Poistion.norm();
+
+	double Shoulder_angle = acos((arm_length*arm_length + target_len*target_len  - la2*la2)/(2* arm_length *target_len) );
+
+	double elblow_angle = acos((la2*la2 + target_len*target_len  - arm_length*arm_length)/(2* la2 *target_len) );
+
+	//Get the point on target vector that the circle should be on (yea i know it sounds confusing)
+
+  Eigen::Vector3d Wrist_Desired_normalized_vector = Wrist_Desired_Poistion/Wrist_Desired_Poistion.norm();
+
+  Eigen::Vector3d Wrist_Desired_projected_vector = Wrist_Desired_normalized_vector * cos(Shoulder_angle)*arm_length;
+
+  //Get the user picked point in circle
+
+  Eigen::Vector3d Rotated_normal_vector(sin(wrist_angle),0,cos(wrist_angle));
+
+  Eigen::Vector3d Elbow_Desired_Position =  Wrist_Desired_projected_vector + Wrist_Desired_projected_vector.cross(Rotated_normal_vector);   
+
 
 
 }
