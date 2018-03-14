@@ -130,7 +130,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
 void MyPlugin::shutdownPlugin()
 {
-  // TODO unregister all publishers here
+  // unregister all publishers here
   JointTargetPositionPublisher.shutdown();
   SimulationStartPublisher.shutdown();
   SimulationPausePublisher.shutdown();
@@ -166,6 +166,7 @@ void triggerConfiguration()
 }*/
 
 void MyPlugin::subscribeJointCurrentPosition(const vrep_test::JointAngles& msg){
+  // Can be repalced by joint state publisher
     currentPosition[0] = msg.Knee;
 
     currentPosition[1] = msg.Back_Z;
@@ -213,7 +214,7 @@ void MyPlugin::subscribeJointCurrentPosition(const vrep_test::JointAngles& msg){
 }
 
 void MyPlugin::JointCurrentPositionRefresher(){
-
+  // Do not refresh the rqt interface at a rate faster than 50 Hz, it may crash the application
   for (int i = 0; i < currentPosition.size(); i++){
     currentPositionLabels[i]->setText(QString::number(currentPosition[i],'g', 3));
     if(ui_.Mode_Combo->currentIndex() >0) targetPositionSliders[i]->setValue((currentPosition[i] + PI) / PI * 50.0);
@@ -231,6 +232,8 @@ void MyPlugin::onJointTargetPositionChanged(int i){
 
 vrep_test::JointAngles MyPlugin::ConvertJointAnglesMsgs(std::vector<double> targetPosition){
 
+  // This is obviously a lot less efficient than just using joint state publisher, it only serves as a demonstration for
+  // how to use custom ros messages for vrep communication
   vrep_test::JointAngles msg;
 
   msg.Knee = targetPosition[0];
@@ -367,10 +370,10 @@ void MyPlugin::sortHandSliderLists(){
   temp.append(ui_.LHT);
   temp.append(ui_.LHI);
   temp.append(ui_.LHM);
-  temp.append(ui_.LHR);
+  temp.append(ui_.LHR); 
   temp.append(ui_.LHP);
   HandPositionSliders.append(temp);
-  while(!temp.isEmpty()) temp.removeLast();
+  while(!temp.isEmpty()) temp.pop_back();
   temp.append(ui_.RHT);
   temp.append(ui_.RHI);
   temp.append(ui_.RHM);
@@ -403,7 +406,7 @@ void MyPlugin::onPauseButtonClicked(){
 }
 
 void MyPlugin::onZero(){
-
+  // Zero function doing what zeroing functioins do 
   for(int i = 0 ; i < currentPositionLabels.size(); i++) currentPositionLabels[i]->setText("0.0");
   for(int i = 0 ; i < targetPositionLabels.size(); i++) targetPositionLabels[i]->setText("0.0");
   for(int i = 0 ; i < targetPositionSliders.size(); i++) targetPositionSliders[i]->setValue(50);
@@ -498,11 +501,13 @@ void MyPlugin::callbackImage(const sensor_msgs::Image::ConstPtr& msg){
 }
 
 QList<QString> MyPlugin::getTopicList(const QSet<QString>& message_types, const QList<QString>& transports){
+  
   QSet<QString> message_sub_types;
   return getTopics(message_types, message_sub_types, transports).values();
 }
 
 QSet<QString> MyPlugin::getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports){
+  // Get all the Image topics
   ros::master::V_TopicInfo topic_info;
   ros::master::getTopics(topic_info);
 
@@ -603,6 +608,7 @@ void MyPlugin::updateTopicList(){
 }
 
 void MyPlugin::onTopicChanged(int index){
+  //Change the display image topics
   CameraSubscriber.shutdown();
 
   // reset image on topic change
@@ -626,7 +632,7 @@ void MyPlugin::onTopicChanged(int index){
 }
 
 void MyPlugin::onModeChanged(int index){
-
+  // Change control mode
   std_msgs::Bool mode;
   (index >0) ? mode.data = true : mode.data = false;
   for(int i = 0 ; i< targetPositionSliders.size(); i++) targetPositionSliders[i]->setEnabled(!mode.data);
@@ -635,7 +641,7 @@ void MyPlugin::onModeChanged(int index){
 }
 
 void MyPlugin::onIKTargetPositionChanged(double d){
-
+  // move the target dummy in vrep
   std::vector<double> IKtargetPosition;
   for(int i = 0; i < targetPositionSpinBox.size(); i++){
       IKtargetPosition.push_back(targetPositionSpinBox[i]->value());
@@ -660,6 +666,7 @@ void MyPlugin::onHandJointTargetPositionChanged(int i){
 
 
 void MyPlugin::onJointRotationVisualization(){
+  //It just moves the silly ring around the selected joint when it moves
   QSlider * slider = (QSlider *) sender();
   std_msgs::Int32 msg;
   msg.data = -1;
@@ -671,6 +678,7 @@ void MyPlugin::onJointRotationVisualization(){
 }
 
 void MyPlugin::onJointRotationVisualizationFinish(){
+  //Show's over, go back to hiding, ring
   QSlider * slider = (QSlider *) sender();
   std_msgs::Int32 msg;
   msg.data = -1;
@@ -679,6 +687,7 @@ void MyPlugin::onJointRotationVisualizationFinish(){
 
 
 void MyPlugin::onSteeringValueChanged(int){
+  // Send out a twist msg
   geometry_msgs::Twist msg;
   msg.linear.x = ((double)ui_.Twist_X->value() - 50.)*0.02;
   msg.linear.y = ((double)ui_.Twist_Y->value() - 50.)*0.02;
@@ -688,14 +697,14 @@ void MyPlugin::onSteeringValueChanged(int){
 }
 
 void MyPlugin::onInertiaParaClicked(){
+  //Example for ros service communication
   ros::ServiceClient client = getNodeHandle().serviceClient<vrep_test::InertiaPara>("/vrep_ros_interface/InertiaPara_Query");
   // ptr_XR1->callInertiaPara(client);
 }
 
-void MyPlugin::just_timer_callback( ){
-  // ui_.counter->setText(QString::number(ros::Time::now().toSec(),'g', 3));
-  ROS_INFO("Callback triggered");
-}
+// void MyPlugin::just_timer_callback( ){
+//   ROS_INFO("Callback triggered");
+// }
 
   
 } // namespace

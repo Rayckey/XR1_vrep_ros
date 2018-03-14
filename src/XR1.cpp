@@ -145,7 +145,7 @@ double XR1::DHTableLookUp(const int row, const int col){
 
 void XR1::subscribeJointCurrentPosition(vrep_test::JointAngles msg){
 
-  	static tf2_ros::TransformBroadcaster br;
+  static tf2_ros::TransformBroadcaster br;
 
 	double JointAngles[numJoint] ={
   		0, msg.Knee, msg.Back_Z, msg.Back_X, msg.Back_Y, msg. Neck_Z, msg. Neck_X, msg. Head,
@@ -240,10 +240,6 @@ void XR1::InverseKinematics(std::vector<double> pos , double wrist_angle){
 
   Eigen::Vector3d Elbow_Desired_Position =  Wrist_Desired_projected_vector + Wrist_Desired_projected_vector.cross(Rotated_normal_vector);   
 
-
+  // Not done yet, still working on it
 
 }
-
-// void XR1::ActivateSubscriber(ros::NodeHandle nh){
-//   ros::Subscriber sub = nh.subscribe("/JointAngle/Current" , 100 , &XR1::subscribeJointCurrentPosition, this);
-// }
