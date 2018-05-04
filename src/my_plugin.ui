@@ -77,38 +77,13 @@
      <string>Use Synchronous Mode</string>
     </property>
    </widget>
-   <widget class="QComboBox" name="Mode_Combo">
+   <widget class="QPushButton" name="Zero">
     <property name="geometry">
      <rect>
       <x>190</x>
       <y>60</y>
       <width>181</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <item>
-     <property name="text">
-      <string>Joint Control Mode</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>IK Control Mode</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>Torque Contol</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QPushButton" name="Zero">
-    <property name="geometry">
-     <rect>
-      <x>190</x>
-      <y>90</y>
-      <width>181</width>
-      <height>21</height>
+      <height>61</height>
      </rect>
     </property>
     <property name="text">
@@ -322,7 +297,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>5</number>
    </property>
    <widget class="QWidget" name="MainBody_tab">
     <attribute name="title">
