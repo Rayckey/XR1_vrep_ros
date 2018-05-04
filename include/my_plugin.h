@@ -10,6 +10,7 @@
 #include "vrep_test/IK_msg.h"
 #include "vrep_test/HandJointAngles.h"
 #include "vrep_test/JointVisualization.h"
+#include "vrep_test/JointCurrent.h"
 #include <QVector>
 #include <QTimer>
 #include "std_msgs/Bool.h"
@@ -41,7 +42,7 @@ public:
   virtual vrep_test::IK_msg ConvertIkMsgs(std::vector<double> IKtargetPosition);
   virtual vrep_test::HandJointAngles ConvertHandJointAngleMsgs(double HandPosition[5]);
 
-
+  virtual std::vector<double> processCurrents();
 
   void just_timer_callback();
   // Comment in to signal that the plugin has a way to configure it
@@ -57,6 +58,7 @@ protected:
   cv::Mat conversion_mat_;
   int counter;
   double actual_time;
+  void delay(int delay_time);
 
 protected slots:
   virtual void sortLabelLists();
@@ -74,7 +76,9 @@ protected slots:
   virtual void onSteeringValueChanged(int);
   virtual void onInertiaParaClicked();
   virtual void onZero();
-
+  virtual void onGenerate_ConfigurationClicked();
+  virtual void onSave_CurrentClicked();
+  virtual void onCollect_CurrentClicked();
 
 
 private:
@@ -92,6 +96,7 @@ private:
   ros::Publisher TwistPublisher;
   ros::Subscriber JointCurrentPositionSubscriber;
   ros::ServiceClient InertiaParaClient;
+  ros::ServiceClient CurrentClient;
   XR1 * ptr_XR1;
   std::vector<double> currentPosition;
   image_transport::Subscriber CameraSubscriber;
@@ -107,12 +112,23 @@ private:
   int num_gridlines_;
   static double previous;
 
+  std::vector<std::vector<double> > GeneratedConfiguration;
+  std::vector<std::vector<double> > CurrentData;
+  
+  std::vector<std::vector<double> > m_cmdValue;
+
+  QTimer * Path_Ex_Timer;
+
+  int Path_idx;
 
 private slots:
   void onStartButtonClicked();
   void onStopButtonClicked();
   void onPauseButtonClicked();
   void JointCurrentPositionRefresher();
+  void Path_Ex_Fun();
+  void read_saved_path();
+  void onDance_ButtonClicked();
 
 }; //class
 } // namespace

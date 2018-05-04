@@ -1,0 +1,12 @@
+string NAME
+
+---
+
+float64    LSX
+float64    LSY
+float64    LEZ
+float64    LEX
+float64    LWZ
+float64    LWY
+float64    LWX
+int32	   COL

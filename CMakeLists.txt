@@ -32,7 +32,8 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Eigen3)
 
-add_service_files(DIRECTORY srv FILES InertiaPara.srv)
+add_service_files(DIRECTORY srv 
+	FILES InertiaPara.srv JointCurrent.srv)
 
 
 ## Generate added messages and services with any dependencies listed here
@@ -51,7 +52,6 @@ set (vrep_test_SRCS
   src/ratio_layouted_frame.cpp
   src/my_plugin.cpp
   src/XR1.cpp
-
 )
 
 set(vrep_test_HDRS

@@ -16,6 +16,9 @@
 #include <QMessageBox>
 #include <QLabel>
 #include <QGroupBox>
+#include <QFile>
+#include <QTime>
+#include <QTextStream>
 #include <sensor_msgs/image_encodings.h>
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -25,10 +28,11 @@
 
 #define PI 3.141592654
 namespace vrep_test {
-  
+
 MyPlugin::MyPlugin()
   : rqt_gui_cpp::Plugin()
-  , widget_(0)
+  , widget_(0),
+  Path_Ex_Timer(NULL)
 {
   // Constructor is called first before initPlugin function, needless to say.
 
@@ -38,6 +42,8 @@ MyPlugin::MyPlugin()
 
 void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 {
+
+	Path_idx = 0;
 
   // access standalone command line arguments
   QStringList argv = context.argv();
@@ -49,13 +55,13 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   context.addWidget(widget_);
 
   //Simulation Control buttons set up
-  SimulationStartPublisher =  getNodeHandle().advertise<std_msgs::Bool>("/startSimulation",1);
-  SimulationPausePublisher =  getNodeHandle().advertise<std_msgs::Bool>("/pauseSimulation",1);
-  SimulationStopPublisher =  getNodeHandle().advertise<std_msgs::Bool>("/stopSimulation",1);
-  connect(ui_.Start_Simulation, SIGNAL(clicked()),this,SLOT(onStartButtonClicked()));
-  connect(ui_.Stop_Simulation, SIGNAL(clicked()),this,SLOT(onStopButtonClicked()));
-  connect(ui_.Pause_Simulation, SIGNAL(clicked()),this,SLOT(onPauseButtonClicked()));
-  connect(ui_.Zero,SIGNAL(clicked()),this,SLOT(onZero()));
+  SimulationStartPublisher =  getNodeHandle().advertise<std_msgs::Bool>("/startSimulation", 1);
+  SimulationPausePublisher =  getNodeHandle().advertise<std_msgs::Bool>("/pauseSimulation", 1);
+  SimulationStopPublisher =  getNodeHandle().advertise<std_msgs::Bool>("/stopSimulation", 1);
+  connect(ui_.Start_Simulation, SIGNAL(clicked()), this, SLOT(onStartButtonClicked()));
+  connect(ui_.Stop_Simulation, SIGNAL(clicked()), this, SLOT(onStopButtonClicked()));
+  connect(ui_.Pause_Simulation, SIGNAL(clicked()), this, SLOT(onPauseButtonClicked()));
+  connect(ui_.Zero, SIGNAL(clicked()), this, SLOT(onZero()));
 
   // Get Joint Current Angles Subcribers under control
   // Linking the subcriber and refresher WILL crash the GUI
@@ -67,12 +73,12 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   JointCurrentPositionTimer->start(500);
 
   // Set up Joint Target Position Publsiher
-  JointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::JointAngles>("/JointAngle/Target",10);
+  JointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::JointAngles>("/JointAngle/Target", 10);
   sortSliderLists();
   for (int i = 0 ; i < targetPositionSliders.size() ; i++ ) connect(targetPositionSliders[i], SIGNAL(valueChanged(int)), this, SLOT(onJointTargetPositionChanged(int)));
   for (int i = 0 ; i < targetPositionSliders.size() ; i++ ) connect(targetPositionSliders[i], SIGNAL(sliderPressed()), this, SLOT(onJointRotationVisualization()));
   for (int i = 0 ; i < targetPositionSliders.size() ; i++ ) connect(targetPositionSliders[i], SIGNAL(sliderReleased()), this, SLOT(onJointRotationVisualizationFinish()));
-  JointVisualizationPublisher = getNodeHandle().advertise<std_msgs::Int32>("/JointVisualization/Signal",1);
+  JointVisualizationPublisher = getNodeHandle().advertise<std_msgs::Int32>("/JointVisualization/Signal", 1);
 
   //ImageTransportage Viewer Setup
   ui_.ImageTopicComboBox->setCurrentIndex(ui_.ImageTopicComboBox->findText(""));
@@ -86,34 +92,37 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   CameraSubscriber = it.subscribe("/sensor_msgs/Image/FrontCamera", 1, &MyPlugin::callbackImage, this);
 
   //Combo Box to Change Mode
-  ModeChangePublisher = getNodeHandle().advertise<std_msgs::Bool>("/XR1/ModeChange",1);
+  ModeChangePublisher = getNodeHandle().advertise<std_msgs::Bool>("/XR1/ModeChange", 1);
   connect(ui_.Mode_Combo, SIGNAL(currentIndexChanged(int)), this, SLOT(onModeChanged(int)));
 
   //IK Mode setup
   sortSpinBoxLists();
-  IKTargetPositionPublisher =getNodeHandle().advertise<vrep_test::IK_msg>("/XR1/IK_msg",10);
+  IKTargetPositionPublisher = getNodeHandle().advertise<vrep_test::IK_msg>("/XR1/IK_msg", 10);
   for (int i = 0 ; i < targetPositionSpinBox.size() ; i++ ) connect(targetPositionSpinBox[i], SIGNAL(valueChanged(double)), this, SLOT(onIKTargetPositionChanged(double)));
 
 
   //Hand Control Set up
   sortHandSliderLists();
-  LeftHandJointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::HandJointAngles>("/HandJointAngles/Left/Target",10);
-  RightHandJointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::HandJointAngles>("/HandJointAngles/Right/Target",10);
+  LeftHandJointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::HandJointAngles>("/HandJointAngles/Left/Target", 10);
+  RightHandJointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::HandJointAngles>("/HandJointAngles/Right/Target", 10);
   for (int i = 0 ; i < HandPositionSliders[0].size() ; i++ ) connect(HandPositionSliders[0][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
   for (int i = 0 ; i < HandPositionSliders[1].size() ; i++ ) connect(HandPositionSliders[1][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
 
   //Steering
-  TwistPublisher = getNodeHandle().advertise<geometry_msgs::Twist>("/XR1/Base/cmd",10);
-  connect((ui_.Twist_Z),SIGNAL(valueChanged(int)),this,SLOT(onSteeringValueChanged(int)));
-  connect((ui_.Twist_Y),SIGNAL(valueChanged(int)),this,SLOT(onSteeringValueChanged(int)));
-  connect((ui_.Twist_X),SIGNAL(valueChanged(int)),this,SLOT(onSteeringValueChanged(int)));
+  TwistPublisher = getNodeHandle().advertise<geometry_msgs::Twist>("/XR1/Base/cmd", 10);
+  connect((ui_.Twist_Z), SIGNAL(valueChanged(int)), this, SLOT(onSteeringValueChanged(int)));
+  connect((ui_.Twist_Y), SIGNAL(valueChanged(int)), this, SLOT(onSteeringValueChanged(int)));
+  connect((ui_.Twist_X), SIGNAL(valueChanged(int)), this, SLOT(onSteeringValueChanged(int)));
 
   //GetTF
   // ptr_XR1 = new XR1();
 
   //Inertia Parameters Query
-  connect(ui_.InertiaParaQuery, SIGNAL(clicked()), this, SLOT(onInertiaParaClicked()));
-  InertiaParaClient = getNodeHandle().serviceClient<vrep_test::InertiaPara>("InertiaPara_Query");
+  // connect(ui_.InertiaParaQuery, SIGNAL(clicked()), this, SLOT(onInertiaParaClicked()));
+  // InertiaParaClient = getNodeHandle().serviceClient<vrep_test::InertiaPara>("InertiaPara_Query");
+
+  CurrentClient = getNodeHandle().serviceClient<vrep_test::JointCurrent>("/vrep_ros_interface/JointCurrent_Query");
+
 
 
   //MakeShift Timer?
@@ -124,7 +133,22 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
   //TODO Calculate torques and stuff
 
+  connect(ui_.Save_Current, SIGNAL(clicked()) , this , SLOT(onSave_CurrentClicked()));
+  connect(ui_.Collect_Current, SIGNAL(clicked()) , this , SLOT(onCollect_CurrentClicked()));
+  connect(ui_.Generate_Configuration, SIGNAL(clicked()) , this , SLOT(onGenerate_ConfigurationClicked()));
+
+
+
   //TODO Gravity Compensation
+
+
+
+
+
+
+  // Emergency Dance 
+
+  connect(ui_.Dance_Button, SIGNAL(clicked()) , this , SLOT(onDance_ButtonClicked()));
 
 }
 
@@ -165,72 +189,72 @@ void triggerConfiguration()
   // Usually used to open a dialog to offer the user a set of configuration
 }*/
 
-void MyPlugin::subscribeJointCurrentPosition(const vrep_test::JointAngles& msg){
+void MyPlugin::subscribeJointCurrentPosition(const vrep_test::JointAngles& msg) {
   // Can be repalced by joint state publisher
-    currentPosition[0] = msg.Knee;
+  currentPosition[0] = msg.Knee;
 
-    currentPosition[1] = msg.Back_Z;
+  currentPosition[1] = msg.Back_Z;
 
-    currentPosition[2] = msg.Back_X;
+  currentPosition[2] = msg.Back_X;
 
-    currentPosition[3] = msg.Back_Y;
+  currentPosition[3] = msg.Back_Y;
 
-    currentPosition[4] = msg. Neck_Z;
+  currentPosition[4] = msg. Neck_Z;
 
-    currentPosition[5] = msg. Neck_X;
+  currentPosition[5] = msg. Neck_X;
 
-    currentPosition[6] = msg. Head;
+  currentPosition[6] = msg. Head;
 
-    currentPosition[7] = msg. Left_Shoulder_X;
+  currentPosition[7] = msg. Left_Shoulder_X;
 
-    currentPosition[8] = msg. Left_Shoulder_Y;
+  currentPosition[8] = msg. Left_Shoulder_Y;
 
-    currentPosition[9] = msg. Left_Elbow_Z;
+  currentPosition[9] = msg. Left_Elbow_Z;
 
-    currentPosition[10] = msg. Left_Elbow_X;
+  currentPosition[10] = msg. Left_Elbow_X;
 
-    currentPosition[11] = msg. Left_Wrist_Z;
+  currentPosition[11] = msg. Left_Wrist_Z;
 
-    currentPosition[12] = msg. Left_Wrist_Y;
+  currentPosition[12] = msg. Left_Wrist_Y;
 
-    currentPosition[13] = msg. Left_Wrist_X;
+  currentPosition[13] = msg. Left_Wrist_X;
 
-    currentPosition[14] = msg. Right_Shoulder_X;
+  currentPosition[14] = msg. Right_Shoulder_X;
 
-    currentPosition[15] = msg. Right_Shoulder_Y;
+  currentPosition[15] = msg. Right_Shoulder_Y;
 
-    currentPosition[16] = msg. Right_Elbow_Z;
+  currentPosition[16] = msg. Right_Elbow_Z;
 
-    currentPosition[17] = msg. Right_Elbow_X;
+  currentPosition[17] = msg. Right_Elbow_X;
 
-    currentPosition[18] = msg. Right_Wrist_Z;
+  currentPosition[18] = msg. Right_Wrist_Z;
 
-    currentPosition[19] = msg. Right_Wrist_Y;
+  currentPosition[19] = msg. Right_Wrist_Y;
 
-    currentPosition[20] = msg. Right_Wrist_X;
+  currentPosition[20] = msg. Right_Wrist_X;
 
 
-    // ptr_XR1->subscribeJointCurrentPosition(msg);
+  // ptr_XR1->subscribeJointCurrentPosition(msg);
 }
 
-void MyPlugin::JointCurrentPositionRefresher(){
+void MyPlugin::JointCurrentPositionRefresher() {
   // Do not refresh the rqt interface at a rate faster than 50 Hz, it may crash the application
-  for (int i = 0; i < currentPosition.size(); i++){
-    currentPositionLabels[i]->setText(QString::number(currentPosition[i],'g', 3));
-    if(ui_.Mode_Combo->currentIndex() >0) targetPositionSliders[i]->setValue((currentPosition[i] + PI) / PI * 50.0);
+  for (int i = 0; i < currentPosition.size(); i++) {
+    currentPositionLabels[i]->setText(QString::number(currentPosition[i], 'g', 3));
+    if (ui_.Mode_Combo->currentIndex() > 0) targetPositionSliders[i]->setValue((currentPosition[i] + PI) / PI * 50.0);
   }
 }
 
-void MyPlugin::onJointTargetPositionChanged(int i){
+void MyPlugin::onJointTargetPositionChanged(int i) {
   std::vector<double> targetPosition;
-  for(int i = 0; i < targetPositionSliders.size(); i++){
-    targetPosition.push_back((double)targetPositionSliders[i]->value()/100. * PI * 2. - PI);
-    targetPositionLabels[i]->setText(QString::number(targetPosition.back(),'g', 3));
+  for (int i = 0; i < targetPositionSliders.size(); i++) {
+    targetPosition.push_back((double)targetPositionSliders[i]->value() / 100. * PI * 2. - PI);
+    targetPositionLabels[i]->setText(QString::number(targetPosition.back(), 'g', 3));
   }
   if (ui_.Mode_Combo->currentIndex() == 0 )JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
 }
 
-vrep_test::JointAngles MyPlugin::ConvertJointAnglesMsgs(std::vector<double> targetPosition){
+vrep_test::JointAngles MyPlugin::ConvertJointAnglesMsgs(std::vector<double> targetPosition) {
 
   // This is obviously a lot less efficient than just using joint state publisher, it only serves as a demonstration for
   // how to use custom ros messages for vrep communication
@@ -295,7 +319,7 @@ vrep_test::JointAngles MyPlugin::ConvertJointAnglesMsgs(std::vector<double> targ
   return msg;
 }
 
-vrep_test::IK_msg MyPlugin::ConvertIkMsgs(std::vector<double> IKtargetPosition){
+vrep_test::IK_msg MyPlugin::ConvertIkMsgs(std::vector<double> IKtargetPosition) {
 
   vrep_test::IK_msg msg;
   msg.LPX = IKtargetPosition[0];
@@ -325,7 +349,7 @@ vrep_test::IK_msg MyPlugin::ConvertIkMsgs(std::vector<double> IKtargetPosition){
   return msg;
 }
 
-vrep_test::HandJointAngles MyPlugin::ConvertHandJointAngleMsgs(double HandPosition[5]){
+vrep_test::HandJointAngles MyPlugin::ConvertHandJointAngleMsgs(double HandPosition[5]) {
   vrep_test::HandJointAngles msg;
   msg.Thumb = HandPosition[0];
   msg.Index = HandPosition[1];
@@ -335,22 +359,22 @@ vrep_test::HandJointAngles MyPlugin::ConvertHandJointAngleMsgs(double HandPositi
   return msg;
 }
 
-void MyPlugin::sortLabelLists(){
-  while(!currentPositionLabels.isEmpty())  currentPositionLabels.pop_back();
-  for(int i = 0 ; i < 21; i++) currentPositionLabels.append(ui_.Current_Group->findChild<QLabel *>("Joint_Current_Label_"+QString::number(i)));
+void MyPlugin::sortLabelLists() {
+  while (!currentPositionLabels.isEmpty())  currentPositionLabels.pop_back();
+  for (int i = 0 ; i < 21; i++) currentPositionLabels.append(ui_.tabWidget->findChild<QLabel *>("Joint_Current_Label_" + QString::number(i)));
 
-  while(!targetPositionLabels.isEmpty())  targetPositionLabels.pop_back();
-  for(int i = 0 ; i < 21; i++) targetPositionLabels.append(ui_.Target_Group->findChild<QLabel *>("Joint_Target_Label_"+QString::number(i)));
-} 
-
-void MyPlugin::sortSliderLists(){
-  while(!targetPositionSliders.isEmpty())  targetPositionSliders.pop_back();
-  for(int i = 0 ; i < 7; i++) targetPositionSliders.append(ui_.Position_Control_Group->findChild<QSlider *>("Body_T_S_"+QString::number(i)));
-  for(int i = 0 ; i < 7; i++) targetPositionSliders.append(ui_.Position_Control_Group->findChild<QSlider *>("Left_Arm_T_S_"+QString::number(i)));
-  for(int i = 0 ; i < 7; i++) targetPositionSliders.append(ui_.Position_Control_Group->findChild<QSlider *>("Right_Arm_T_S_"+QString::number(i)));
+  while (!targetPositionLabels.isEmpty())  targetPositionLabels.pop_back();
+  for (int i = 0 ; i < 21; i++) targetPositionLabels.append(ui_.tabWidget->findChild<QLabel *>("Joint_Target_Label_" + QString::number(i)));
 }
 
-void MyPlugin::sortSpinBoxLists(){
+void MyPlugin::sortSliderLists() {
+  while (!targetPositionSliders.isEmpty())  targetPositionSliders.pop_back();
+  for (int i = 0 ; i < 7; i++) targetPositionSliders.append(ui_.tabWidget->findChild<QSlider *>("Body_T_S_" + QString::number(i)));
+  for (int i = 0 ; i < 7; i++) targetPositionSliders.append(ui_.tabWidget->findChild<QSlider *>("Left_Arm_T_S_" + QString::number(i)));
+  for (int i = 0 ; i < 7; i++) targetPositionSliders.append(ui_.tabWidget->findChild<QSlider *>("Right_Arm_T_S_" + QString::number(i)));
+}
+
+void MyPlugin::sortSpinBoxLists() {
   targetPositionSpinBox.append(ui_.LPX);
   targetPositionSpinBox.append(ui_.LPY);
   targetPositionSpinBox.append(ui_.LPZ);
@@ -365,15 +389,15 @@ void MyPlugin::sortSpinBoxLists(){
   targetPositionSpinBox.append(ui_.RRZ);
 }
 
-void MyPlugin::sortHandSliderLists(){
+void MyPlugin::sortHandSliderLists() {
   QVector<QSlider *> temp;
   temp.append(ui_.LHT);
   temp.append(ui_.LHI);
   temp.append(ui_.LHM);
-  temp.append(ui_.LHR); 
+  temp.append(ui_.LHR);
   temp.append(ui_.LHP);
   HandPositionSliders.append(temp);
-  while(!temp.isEmpty()) temp.pop_back();
+  while (!temp.isEmpty()) temp.pop_back();
   temp.append(ui_.RHT);
   temp.append(ui_.RHI);
   temp.append(ui_.RHM);
@@ -382,16 +406,16 @@ void MyPlugin::sortHandSliderLists(){
   HandPositionSliders.append(temp);
 }
 
-void MyPlugin::onStartButtonClicked(){
+void MyPlugin::onStartButtonClicked() {
   std_msgs::Bool data;
   data.data = true;
   SimulationStartPublisher.publish(data);
 
-   updateTopicList();
-   onZero();
+  updateTopicList();
+  onZero();
 }
 
-void MyPlugin::onStopButtonClicked(){
+void MyPlugin::onStopButtonClicked() {
   std_msgs::Bool data;
   data.data = true;
   SimulationStopPublisher.publish(data);
@@ -399,24 +423,24 @@ void MyPlugin::onStopButtonClicked(){
   onZero();
 }
 
-void MyPlugin::onPauseButtonClicked(){
+void MyPlugin::onPauseButtonClicked() {
   std_msgs::Bool data;
   data.data = true;
   SimulationPausePublisher.publish(data);
 }
 
-void MyPlugin::onZero(){
-  // Zero function doing what zeroing functioins do 
-  for(int i = 0 ; i < currentPositionLabels.size(); i++) currentPositionLabels[i]->setText("0.0");
-  for(int i = 0 ; i < targetPositionLabels.size(); i++) targetPositionLabels[i]->setText("0.0");
-  for(int i = 0 ; i < targetPositionSliders.size(); i++) targetPositionSliders[i]->setValue(50);
-  for(int i = 0 ; i < HandPositionSliders[0].size(); i++) HandPositionSliders[0][i]->setValue(0);
-  for(int i = 0 ; i < HandPositionSliders[1].size(); i++) HandPositionSliders[1][i]->setValue(0);
+void MyPlugin::onZero() {
+  // Zero function doing what zeroing functioins do
+  for (int i = 0 ; i < currentPositionLabels.size(); i++) currentPositionLabels[i]->setText("0.0");
+  for (int i = 0 ; i < targetPositionLabels.size(); i++) targetPositionLabels[i]->setText("0.0");
+  for (int i = 0 ; i < targetPositionSliders.size(); i++) targetPositionSliders[i]->setValue(50);
+  for (int i = 0 ; i < HandPositionSliders[0].size(); i++) HandPositionSliders[0][i]->setValue(0);
+  for (int i = 0 ; i < HandPositionSliders[1].size(); i++) HandPositionSliders[1][i]->setValue(0);
 
   ui_.Twist_X->setValue(50);
   ui_.Twist_Y->setValue(50);
   ui_.Twist_Z->setValue(50);
-  
+
   targetPositionSpinBox[0]->setValue(0.2);
   targetPositionSpinBox[1]->setValue(0.0);
   targetPositionSpinBox[2]->setValue(0.75);
@@ -432,7 +456,7 @@ void MyPlugin::onZero(){
 }
 
 
-void MyPlugin::callbackImage(const sensor_msgs::Image::ConstPtr& msg){
+void MyPlugin::callbackImage(const sensor_msgs::Image::ConstPtr& msg) {
   try
   {
     // First let cv_bridge do its magic
@@ -440,11 +464,11 @@ void MyPlugin::callbackImage(const sensor_msgs::Image::ConstPtr& msg){
     conversion_mat_ = cv_ptr->image;
 
     // if (num_gridlines_ > 0)
-      // overlayGrid();
+    // overlayGrid();
   }
   catch (cv_bridge::Exception& e)
   {
-        targetPositionLabels[4]->setText("cv nope");
+    targetPositionLabels[4]->setText("cv nope");
     try
     {
       // If we're here, there is no conversion that makes sense, but let's try to imagine a few first
@@ -472,7 +496,7 @@ void MyPlugin::callbackImage(const sensor_msgs::Image::ConstPtr& msg){
           }
         }
         cv::Mat img_scaled_8u;
-        cv::Mat(cv_ptr->image-min).convertTo(img_scaled_8u, CV_8UC1, 255. / (max - min));
+        cv::Mat(cv_ptr->image - min).convertTo(img_scaled_8u, CV_8UC1, 255. / (max - min));
         cv::cvtColor(img_scaled_8u, conversion_mat_, CV_GRAY2RGB);
       } else {
         qWarning("ImageView.callback_image() could not convert image from '%s' to 'rgb8' (%s)", msg->encoding.c_str(), e.what());
@@ -500,13 +524,13 @@ void MyPlugin::callbackImage(const sensor_msgs::Image::ConstPtr& msg){
   // onZoom1(ui_.zoom_1_push_button->isChecked());
 }
 
-QList<QString> MyPlugin::getTopicList(const QSet<QString>& message_types, const QList<QString>& transports){
-  
+QList<QString> MyPlugin::getTopicList(const QSet<QString>& message_types, const QList<QString>& transports) {
+
   QSet<QString> message_sub_types;
   return getTopics(message_types, message_sub_types, transports).values();
 }
 
-QSet<QString> MyPlugin::getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports){
+QSet<QString> MyPlugin::getTopics(const QSet<QString>& message_types, const QSet<QString>& message_sub_types, const QList<QString>& transports) {
   // Get all the Image topics
   ros::master::V_TopicInfo topic_info;
   ros::master::getTopics(topic_info);
@@ -554,7 +578,7 @@ QSet<QString> MyPlugin::getTopics(const QSet<QString>& message_types, const QSet
   return topics;
 }
 
-void MyPlugin::selectTopic(const QString& topic){
+void MyPlugin::selectTopic(const QString& topic) {
   int index = ui_.ImageTopicComboBox->findText(topic);
   if (index == -1)
   {
@@ -567,7 +591,7 @@ void MyPlugin::selectTopic(const QString& topic){
   ui_.ImageTopicComboBox->setCurrentIndex(index);
 }
 
-void MyPlugin::updateTopicList(){
+void MyPlugin::updateTopicList() {
   QSet<QString> message_types;
   message_types.insert("sensor_msgs/Image");
   QSet<QString> message_sub_types;
@@ -607,7 +631,7 @@ void MyPlugin::updateTopicList(){
   selectTopic(selected);
 }
 
-void MyPlugin::onTopicChanged(int index){
+void MyPlugin::onTopicChanged(int index) {
   //Change the display image topics
   CameraSubscriber.shutdown();
 
@@ -631,82 +655,291 @@ void MyPlugin::onTopicChanged(int index){
   // onMousePublish(ui_.publish_click_location_check_box->isChecked());
 }
 
-void MyPlugin::onModeChanged(int index){
+void MyPlugin::onModeChanged(int index) {
   // Change control mode
   std_msgs::Bool mode;
-  (index >0) ? mode.data = true : mode.data = false;
-  for(int i = 0 ; i< targetPositionSliders.size(); i++) targetPositionSliders[i]->setEnabled(!mode.data);
+  (index > 0) ? mode.data = true : mode.data = false;
+  for (int i = 0 ; i < targetPositionSliders.size(); i++) targetPositionSliders[i]->setEnabled(!mode.data);
   ModeChangePublisher.publish(mode);
   // onMousePublish(ui_.publish_click_location_check_box->isChecked());
 }
 
-void MyPlugin::onIKTargetPositionChanged(double d){
+void MyPlugin::onIKTargetPositionChanged(double d) {
   // move the target dummy in vrep
   std::vector<double> IKtargetPosition;
-  for(int i = 0; i < targetPositionSpinBox.size(); i++){
-      IKtargetPosition.push_back(targetPositionSpinBox[i]->value());
+  for (int i = 0; i < targetPositionSpinBox.size(); i++) {
+    IKtargetPosition.push_back(targetPositionSpinBox[i]->value());
   }
 
   IKTargetPositionPublisher.publish(ConvertIkMsgs(IKtargetPosition));
 }
 
-void MyPlugin::onHandJointTargetPositionChanged(int i){
+void MyPlugin::onHandJointTargetPositionChanged(int i) {
 
   double temp[5];
-  for(int i = 0; i < 5; i++){
-      temp[i] = (double)HandPositionSliders[0][i]->value() /200 * PI;
+  for (int i = 0; i < 5; i++) {
+    temp[i] = (double)HandPositionSliders[0][i]->value() / 200 * PI;
   }
   LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(temp));
-  for(int i = 0; i < 5; i++){
-      temp[i] = (double)HandPositionSliders[1][i]->value() /200 * PI;
+  for (int i = 0; i < 5; i++) {
+    temp[i] = (double)HandPositionSliders[1][i]->value() / 200 * PI;
   }
   RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(temp));
 
 }
 
 
-void MyPlugin::onJointRotationVisualization(){
+void MyPlugin::onJointRotationVisualization() {
   //It just moves the silly ring around the selected joint when it moves
   QSlider * slider = (QSlider *) sender();
   std_msgs::Int32 msg;
   msg.data = -1;
-    for(int i = 0; i< targetPositionSliders.size(); i++){
-      if(targetPositionSliders[i] == slider) msg.data = i;
-    }
+  for (int i = 0; i < targetPositionSliders.size(); i++) {
+    if (targetPositionSliders[i] == slider) msg.data = i;
+  }
 
-  if(msg.data>=0) JointVisualizationPublisher.publish(msg);
+  if (msg.data >= 0) JointVisualizationPublisher.publish(msg);
 }
 
-void MyPlugin::onJointRotationVisualizationFinish(){
+void MyPlugin::onJointRotationVisualizationFinish() {
   //Show's over, go back to hiding, ring
   QSlider * slider = (QSlider *) sender();
   std_msgs::Int32 msg;
   msg.data = -1;
-  JointVisualizationPublisher.publish(msg); 
+  JointVisualizationPublisher.publish(msg);
 }
 
 
-void MyPlugin::onSteeringValueChanged(int){
+void MyPlugin::onSteeringValueChanged(int) {
   // Send out a twist msg
   geometry_msgs::Twist msg;
-  msg.linear.x = ((double)ui_.Twist_X->value() - 50.)*0.02;
-  msg.linear.y = ((double)ui_.Twist_Y->value() - 50.)*0.02;
-  msg.angular.z = ((double)ui_.Twist_Z->value() - 50.)*0.01;
+  msg.linear.x = ((double)ui_.Twist_X->value() - 50.) * 0.02;
+  msg.linear.y = ((double)ui_.Twist_Y->value() - 50.) * 0.02;
+  msg.angular.z = ((double)ui_.Twist_Z->value() - 50.) * 0.01;
 
   TwistPublisher.publish(msg);
 }
 
-void MyPlugin::onInertiaParaClicked(){
+void MyPlugin::onInertiaParaClicked() {
   //Example for ros service communication
   ros::ServiceClient client = getNodeHandle().serviceClient<vrep_test::InertiaPara>("/vrep_ros_interface/InertiaPara_Query");
   // ptr_XR1->callInertiaPara(client);
 }
 
-// void MyPlugin::just_timer_callback( ){
-//   ROS_INFO("Callback triggered");
-// }
 
-  
+void MyPlugin::onGenerate_ConfigurationClicked() {
+  // static const double ranges[7] = {2 * PI , PI , 2 * PI , PI / 2.0 - 0.1 , 2.0 * PI , PI / 2.0 , PI / 2.0};
+
+  // static const double lower_bounds[7] = { -PI , 0.0 , -PI , 0.0, -PI , -PI / 4.0 , -PI / 4.0};
+
+  static const double ranges[7] =     {2 * PI , PI ,  PI      , -PI / 2.0 + 0.1 , 2.0 * PI , PI / 2.0 , PI / 2.0};
+
+  static const double lower_bounds[7] = { -PI , 0.0 , -PI/2.0 , 0.0,              -PI ,     -PI / 4.0 , -PI / 4.0};
+
+  ROS_INFO("Generating Configurations");
+
+  while (!GeneratedConfiguration.empty()) GeneratedConfiguration.pop_back();
+  while (!CurrentData.empty()) CurrentData.pop_back();
+
+  for (int i = 0 ; i < 100 ; i++) {
+    std::vector<double> temp_angles(7);  
+    for (int j = 0 ; j < temp_angles.size(); j++) temp_angles[j] = ((double)rand() / (double)RAND_MAX * ranges[j]) + lower_bounds[j];
+    GeneratedConfiguration.push_back(temp_angles);
+  }
+
+
+  //   for (int i = 0 ; i < 100 ; i++) {
+  //   std::vector<double> temp_angles(7);
+  //   for (int j = 0 ; j < temp_angles.size(); j++) temp_angles[j] = ((double)i * ranges[j] / 100.0) + lower_bounds[j];
+  //   GeneratedConfiguration.push_back(temp_angles);
+  // }
+
+  // int tempie = GeneratedConfiguration.size();
+  // int tempie2 = GeneratedConfiguration[0].size();
+  // ROS_INFO("Generated Configurations , size is [%d] [%d]" , tempie , tempie2);
+
+
+  // //Configuration 1: Excite the Hand link
+
+  // //MSX
+  // for (int i = 0 ; i < 50 ; i++){
+  //   std::vector<double> temp_angles(7);
+  //   temp_angles[0] = -PI/2;
+  //   temp_angles[1] = 0.0;
+  //   temp_angles[2] = 0.0;
+  //   temp_angles[3] = 0.0;
+  //   temp_angles[4] = 0.0;
+  //   temp_angles[5] = 0.0;
+  //   temp_angles[6] = ((double)rand() / (double)RAND_MAX * ranges[6]) + lower_bounds[6];
+  //   GeneratedConfiguration.push_back(temp_angles);
+  // }
+
+
+
+}
+
+
+
+
+void MyPlugin::onCollect_CurrentClicked() {
+
+  ui_.Save_Current->setEnabled(false);
+  ui_.Collect_Current->setText("Waiting");
+
+  if (GeneratedConfiguration.empty()) {
+
+  }
+  else {
+    for (int i = 0 ; i < targetPositionSliders.size(); i++) targetPositionSliders[i]->setEnabled(false);
+
+    for (int i = 0 ; i < GeneratedConfiguration.size() ; i++) {
+      ROS_INFO("New Position");
+      std::vector<double> targetPosition(21);
+
+      for (int j = 0; j < 7; j++) {
+        targetPosition[j] = 0.0;
+        targetPosition[j + 7] = GeneratedConfiguration[i][j];
+        targetPosition[j + 14] = 0.0;
+
+      }
+      ROS_INFO("Publishing New Position");
+      JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
+
+
+      delay(2000);
+
+      CurrentData.push_back(processCurrents());
+
+    }
+  }
+
+  ui_.Generate_Configuration->setText("Finished Collection");
+
+  ui_.Save_Current->setEnabled(true);
+}
+
+std::vector<double> MyPlugin::processCurrents() {
+
+  std::vector<double> res;
+
+  for ( int i = 0; i < 10 ; i++) {
+
+    vrep_test::JointCurrent srv;
+
+    srv.request.NAME = "Left";
+
+    if (CurrentClient.call(srv)) {
+      ROS_INFO("Got Service Response from Vrep");
+      res.push_back(srv.response.LSX);
+      res.push_back(srv.response.LSY);
+      res.push_back(srv.response.LEZ);
+      res.push_back(srv.response.LEX);
+      res.push_back(srv.response.LWZ);
+      res.push_back(srv.response.LWY);
+      res.push_back(srv.response.LWX);
+      res.push_back(srv.response.COL);
+    }
+
+    delay(20);
+
+  }
+  return res;
+}
+
+void MyPlugin::onSave_CurrentClicked() {
+
+  QString filename = "/home/rocky/CollectedData/testrun.txt";
+  QFile fileout(filename);
+  QTextStream out(&fileout);
+
+  if (!fileout.open(QIODevice::ReadWrite)) ROS_INFO("Failed to write , plzz check privilege");
+  else {
+    for (int i = 0 ; i < GeneratedConfiguration.size() ; i++) {
+
+      for ( int j = 0 ; j < GeneratedConfiguration[i].size() ; j++) out << GeneratedConfiguration[i][j] << " " ;
+      for ( int j = 0 ; j < CurrentData[i].size() ; j++) out << CurrentData[i][j] << " " ;
+
+      out << endl;
+    }
+
+  }
+
+  fileout.close();
+}
+
+
+void MyPlugin::delay(int delay_time) {
+  QTime dieTime = QTime::currentTime().addMSecs(delay_time);
+  while (QTime::currentTime() < dieTime)
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+}
+
+
+
+void MyPlugin::onDance_ButtonClicked(){
+
+	read_saved_path();
+	ROS_INFO("Data Read");
+	ROS_INFO("Size of the data is [%d]" , (int)m_cmdValue.size());
+  if(!Path_Ex_Timer) {
+  	Path_Ex_Timer= new QTimer(this);
+
+  	  connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
+  }
+  else Path_Ex_Timer->stop();
+
+	Path_idx = 0;
+  Path_Ex_Timer->start(100);
+}
+
+
+void MyPlugin::read_saved_path(){
+
+	while(m_cmdValue.size() > 0) m_cmdValue.pop_back();
+
+	ROS_INFO("Reading Infos");
+	QFile file("/home/rocky/CollectedData/path.txt");
+    if(file.open(QFile::ReadOnly | QFile::Text))
+    {
+        while (!file.atEnd()) {
+            QByteArray arr = file.readLine();
+            arr.replace('\n',' ');
+            QList<QByteArray> arrList = arr.split(',');
+            if(arrList.size() < 7)
+            {
+                ROS_INFO("Data Errors");
+                continue;
+            }
+            std::vector<double> cmdValue;
+            foreach (QByteArray tmp, arrList) {
+                cmdValue.push_back(tmp.toDouble());
+            }
+            m_cmdValue.push_back(cmdValue);
+        }
+    }
+}
+
+
+void MyPlugin::Path_Ex_Fun(){
+
+	ROS_INFO("Entered Step [%d]" , Path_idx);
+	std::vector<double>  temp_angles = m_cmdValue[Path_idx];
+
+	std::vector<double> targetPosition;
+
+	for (int i = 0 ; i < 4 ; i++ )
+		targetPosition.push_back(temp_angles[i]);
+
+	while(targetPosition.size() < 21) targetPosition.push_back(0.0);
+
+	targetPosition[7] = temp_angles[4];
+	targetPosition[14] = temp_angles[6];
+
+	JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
+
+	if (Path_idx < m_cmdValue.size()-1) Path_idx++;
+}
+
 } // namespace
 
 
