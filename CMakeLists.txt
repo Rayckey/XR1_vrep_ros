@@ -52,6 +52,7 @@ set (vrep_test_SRCS
   src/ratio_layouted_frame.cpp
   src/my_plugin.cpp
   src/XR1.cpp
+  src/my_plugin_ultis.cpp
 )
 
 set(vrep_test_HDRS

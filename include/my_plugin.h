@@ -117,6 +117,21 @@ private:
   
   std::vector<std::vector<double> > m_cmdValue;
 
+
+  void setup_main_joint_limit();
+  void setup_arm_joint_limit();
+  void setup_hand_joint_limit();
+
+
+  std::vector<double> joint_lower_limit;
+  std::vector<double> joint_upper_limit;
+
+
+  std::vector<double> hand_joint_lower_limit;
+  std::vector<double> hand_joint_upper_limit;
+
+
+
   QTimer * Path_Ex_Timer;
 
   int Path_idx;

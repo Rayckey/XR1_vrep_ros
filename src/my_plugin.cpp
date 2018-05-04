@@ -43,7 +43,7 @@ MyPlugin::MyPlugin()
 void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 {
 
-	Path_idx = 0;
+  Path_idx = 0;
 
   // access standalone command line arguments
   QStringList argv = context.argv();
@@ -75,10 +75,52 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   // Set up Joint Target Position Publsiher
   JointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::JointAngles>("/JointAngle/Target", 10);
   sortSliderLists();
+
+
+  // Reset the joint limits;
+  setup_main_joint_limit();
+  setup_arm_joint_limit();
+  setup_arm_joint_limit();
+  setup_hand_joint_limit();
+  // setup_hand_joint_limit();
+
+
+  // Set up all the sliders for each joint
+  for (int i = 0 ; i < joint_lower_limit.size() ; i++) {
+    targetPositionSliders[i]->setMinimum(0);
+    targetPositionSliders[i]->setMaximum(100);
+    targetPositionSliders[i]->setValue(floor((0.0 - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * 100));
+  }
+
+
+  //Hand Control Set up
+  sortHandSliderLists();
+  LeftHandJointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::HandJointAngles>("/HandJointAngles/Left/Target", 10);
+  RightHandJointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::HandJointAngles>("/HandJointAngles/Right/Target", 10);
+
+  for (int i = 0 ; i < hand_joint_lower_limit.size() ; i++) {
+    HandPositionSliders[0][i]->setMinimum(0);
+    HandPositionSliders[0][i]->setMaximum(100);
+    HandPositionSliders[0][i]->setValue(floor((0.0 - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100));
+    HandPositionSliders[1][i]->setMinimum(0);
+    HandPositionSliders[1][i]->setMaximum(100);
+    HandPositionSliders[1][i]->setValue(floor((0.0 - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100));
+
+  }
+
+
+  for (int i = 0 ; i < HandPositionSliders[0].size() ; i++ ) connect(HandPositionSliders[0][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
+  for (int i = 0 ; i < HandPositionSliders[1].size() ; i++ ) connect(HandPositionSliders[1][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
+
+
   for (int i = 0 ; i < targetPositionSliders.size() ; i++ ) connect(targetPositionSliders[i], SIGNAL(valueChanged(int)), this, SLOT(onJointTargetPositionChanged(int)));
   for (int i = 0 ; i < targetPositionSliders.size() ; i++ ) connect(targetPositionSliders[i], SIGNAL(sliderPressed()), this, SLOT(onJointRotationVisualization()));
   for (int i = 0 ; i < targetPositionSliders.size() ; i++ ) connect(targetPositionSliders[i], SIGNAL(sliderReleased()), this, SLOT(onJointRotationVisualizationFinish()));
+
+
   JointVisualizationPublisher = getNodeHandle().advertise<std_msgs::Int32>("/JointVisualization/Signal", 1);
+
+
 
   //ImageTransportage Viewer Setup
   ui_.ImageTopicComboBox->setCurrentIndex(ui_.ImageTopicComboBox->findText(""));
@@ -91,22 +133,20 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   image_transport::TransportHints hints(transport.toStdString());
   CameraSubscriber = it.subscribe("/sensor_msgs/Image/FrontCamera", 1, &MyPlugin::callbackImage, this);
 
+
+
   //Combo Box to Change Mode
   ModeChangePublisher = getNodeHandle().advertise<std_msgs::Bool>("/XR1/ModeChange", 1);
-  connect(ui_.Mode_Combo, SIGNAL(currentIndexChanged(int)), this, SLOT(onModeChanged(int)));
+  // connect(ui_.Mode_Combo, SIGNAL(currentIndexChanged(int)), this, SLOT(onModeChanged(int)));
+  connect(ui_.tabWidget , SIGNAL(currentChanged(int)) , this , SLOT(onModeChanged(int)));
+
+
 
   //IK Mode setup
   sortSpinBoxLists();
   IKTargetPositionPublisher = getNodeHandle().advertise<vrep_test::IK_msg>("/XR1/IK_msg", 10);
   for (int i = 0 ; i < targetPositionSpinBox.size() ; i++ ) connect(targetPositionSpinBox[i], SIGNAL(valueChanged(double)), this, SLOT(onIKTargetPositionChanged(double)));
 
-
-  //Hand Control Set up
-  sortHandSliderLists();
-  LeftHandJointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::HandJointAngles>("/HandJointAngles/Left/Target", 10);
-  RightHandJointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::HandJointAngles>("/HandJointAngles/Right/Target", 10);
-  for (int i = 0 ; i < HandPositionSliders[0].size() ; i++ ) connect(HandPositionSliders[0][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
-  for (int i = 0 ; i < HandPositionSliders[1].size() ; i++ ) connect(HandPositionSliders[1][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
 
   //Steering
   TwistPublisher = getNodeHandle().advertise<geometry_msgs::Twist>("/XR1/Base/cmd", 10);
@@ -124,11 +164,9 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   CurrentClient = getNodeHandle().serviceClient<vrep_test::JointCurrent>("/vrep_ros_interface/JointCurrent_Query");
 
 
-
   //MakeShift Timer?
   //LOL nevermind ros timer does not work in rqt
   // ros::Timer just_timer = getNodeHandle().createTimer(ros::Duration(0.001),boost::bind(&MyPlugin::just_timer_callback,this));
-
 
 
   //TODO Calculate torques and stuff
@@ -138,15 +176,9 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect(ui_.Generate_Configuration, SIGNAL(clicked()) , this , SLOT(onGenerate_ConfigurationClicked()));
 
 
-
   //TODO Gravity Compensation
 
-
-
-
-
-
-  // Emergency Dance 
+  // Emergency Dance
 
   connect(ui_.Dance_Button, SIGNAL(clicked()) , this , SLOT(onDance_ButtonClicked()));
 
@@ -189,165 +221,26 @@ void triggerConfiguration()
   // Usually used to open a dialog to offer the user a set of configuration
 }*/
 
-void MyPlugin::subscribeJointCurrentPosition(const vrep_test::JointAngles& msg) {
-  // Can be repalced by joint state publisher
-  currentPosition[0] = msg.Knee;
-
-  currentPosition[1] = msg.Back_Z;
-
-  currentPosition[2] = msg.Back_X;
-
-  currentPosition[3] = msg.Back_Y;
-
-  currentPosition[4] = msg. Neck_Z;
-
-  currentPosition[5] = msg. Neck_X;
-
-  currentPosition[6] = msg. Head;
-
-  currentPosition[7] = msg. Left_Shoulder_X;
-
-  currentPosition[8] = msg. Left_Shoulder_Y;
-
-  currentPosition[9] = msg. Left_Elbow_Z;
-
-  currentPosition[10] = msg. Left_Elbow_X;
-
-  currentPosition[11] = msg. Left_Wrist_Z;
-
-  currentPosition[12] = msg. Left_Wrist_Y;
-
-  currentPosition[13] = msg. Left_Wrist_X;
-
-  currentPosition[14] = msg. Right_Shoulder_X;
-
-  currentPosition[15] = msg. Right_Shoulder_Y;
-
-  currentPosition[16] = msg. Right_Elbow_Z;
-
-  currentPosition[17] = msg. Right_Elbow_X;
-
-  currentPosition[18] = msg. Right_Wrist_Z;
-
-  currentPosition[19] = msg. Right_Wrist_Y;
-
-  currentPosition[20] = msg. Right_Wrist_X;
-
-
-  // ptr_XR1->subscribeJointCurrentPosition(msg);
-}
 
 void MyPlugin::JointCurrentPositionRefresher() {
   // Do not refresh the rqt interface at a rate faster than 50 Hz, it may crash the application
   for (int i = 0; i < currentPosition.size(); i++) {
     currentPositionLabels[i]->setText(QString::number(currentPosition[i], 'g', 3));
-    if (ui_.Mode_Combo->currentIndex() > 0) targetPositionSliders[i]->setValue((currentPosition[i] + PI) / PI * 50.0);
+    if (ui_.tabWidget->currentIndex() == 5 ) 
+      targetPositionSliders[i]->setValue((int) ((currentPosition[i] - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * 100 ));
   }
 }
 
 void MyPlugin::onJointTargetPositionChanged(int i) {
   std::vector<double> targetPosition;
   for (int i = 0; i < targetPositionSliders.size(); i++) {
-    targetPosition.push_back((double)targetPositionSliders[i]->value() / 100. * PI * 2. - PI);
+    targetPosition.push_back((double)targetPositionSliders[i]->value() / 100. * ( joint_upper_limit[i] - joint_lower_limit[i]) + joint_lower_limit[i] );
     targetPositionLabels[i]->setText(QString::number(targetPosition.back(), 'g', 3));
   }
-  if (ui_.Mode_Combo->currentIndex() == 0 )JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
+  if (ui_.tabWidget->currentIndex() != 5  )JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
 }
 
-vrep_test::JointAngles MyPlugin::ConvertJointAnglesMsgs(std::vector<double> targetPosition) {
 
-  // This is obviously a lot less efficient than just using joint state publisher, it only serves as a demonstration for
-  // how to use custom ros messages for vrep communication
-  vrep_test::JointAngles msg;
-
-  msg.Knee = targetPosition[0];
-
-  msg.Back_Z = targetPosition[1];
-
-  msg.Back_X = targetPosition[2] ;
-
-  msg.Back_Y = targetPosition[3];
-
-  msg. Neck_Z = targetPosition[4];
-
-  msg. Neck_X = targetPosition[5];
-
-  msg. Head = targetPosition[6];
-
-  msg. Left_Shoulder_X = targetPosition[7];
-
-  msg. Left_Shoulder_Y = targetPosition[8];
-
-  msg. Left_Elbow_Z = targetPosition[9];
-
-  msg. Left_Elbow_X = targetPosition[10];
-
-  msg. Left_Wrist_Z = targetPosition[11];
-
-  msg. Left_Wrist_Y = targetPosition[12];
-
-  msg. Left_Wrist_X = targetPosition[13];
-
-  msg. Left_Shoulder_X = targetPosition[7];
-
-  msg. Left_Shoulder_Y = targetPosition[8];
-
-  msg. Left_Elbow_Z = targetPosition[9];
-
-  msg. Left_Elbow_X = targetPosition[10];
-
-  msg. Left_Wrist_Z = targetPosition[11];
-
-  msg. Left_Wrist_Y = targetPosition[12];
-
-  msg. Left_Wrist_X = targetPosition[13];
-
-  msg. Right_Shoulder_X = targetPosition[14];
-
-  msg. Right_Shoulder_Y = targetPosition[15];
-
-  msg. Right_Elbow_Z = targetPosition[16];
-
-  msg. Right_Elbow_X = targetPosition[17];
-
-  msg. Right_Wrist_Z = targetPosition[18];
-
-  msg. Right_Wrist_Y = targetPosition[19];
-
-  msg. Right_Wrist_X = targetPosition[20];
-
-  return msg;
-}
-
-vrep_test::IK_msg MyPlugin::ConvertIkMsgs(std::vector<double> IKtargetPosition) {
-
-  vrep_test::IK_msg msg;
-  msg.LPX = IKtargetPosition[0];
-
-  msg.LPY = IKtargetPosition[1];
-
-  msg.LPZ = IKtargetPosition[2] ;
-
-  msg.LRX = IKtargetPosition[3];
-
-  msg.LRY = IKtargetPosition[4];
-
-  msg.LRZ = IKtargetPosition[5];
-
-  msg.RPX = IKtargetPosition[6];
-
-  msg.RPY = IKtargetPosition[7];
-
-  msg.RPZ = IKtargetPosition[8];
-
-  msg.RRX = IKtargetPosition[9];
-
-  msg.RRY = IKtargetPosition[10];
-
-  msg.RRZ = IKtargetPosition[11];
-
-  return msg;
-}
 
 vrep_test::HandJointAngles MyPlugin::ConvertHandJointAngleMsgs(double HandPosition[5]) {
   vrep_test::HandJointAngles msg;
@@ -433,9 +326,21 @@ void MyPlugin::onZero() {
   // Zero function doing what zeroing functioins do
   for (int i = 0 ; i < currentPositionLabels.size(); i++) currentPositionLabels[i]->setText("0.0");
   for (int i = 0 ; i < targetPositionLabels.size(); i++) targetPositionLabels[i]->setText("0.0");
-  for (int i = 0 ; i < targetPositionSliders.size(); i++) targetPositionSliders[i]->setValue(50);
-  for (int i = 0 ; i < HandPositionSliders[0].size(); i++) HandPositionSliders[0][i]->setValue(0);
-  for (int i = 0 ; i < HandPositionSliders[1].size(); i++) HandPositionSliders[1][i]->setValue(0);
+
+
+
+  // Set up all the sliders for each joint
+  for (int i = 0 ; i < joint_lower_limit.size() ; i++) {
+    targetPositionSliders[i]->setValue(floor((0.0 - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * 100));
+  }
+
+  for (int i = 0 ; i < hand_joint_lower_limit.size() ; i++) {
+    HandPositionSliders[0][i]->setValue(floor((0.0 - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100));
+    HandPositionSliders[1][i]->setValue(floor((0.0 - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100));
+  }
+
+
+
 
   ui_.Twist_X->setValue(50);
   ui_.Twist_Y->setValue(50);
@@ -658,7 +563,7 @@ void MyPlugin::onTopicChanged(int index) {
 void MyPlugin::onModeChanged(int index) {
   // Change control mode
   std_msgs::Bool mode;
-  (index > 0) ? mode.data = true : mode.data = false;
+  (index == 5) ? mode.data = true : mode.data = false;
   for (int i = 0 ; i < targetPositionSliders.size(); i++) targetPositionSliders[i]->setEnabled(!mode.data);
   ModeChangePublisher.publish(mode);
   // onMousePublish(ui_.publish_click_location_check_box->isChecked());
@@ -678,11 +583,11 @@ void MyPlugin::onHandJointTargetPositionChanged(int i) {
 
   double temp[5];
   for (int i = 0; i < 5; i++) {
-    temp[i] = (double)HandPositionSliders[0][i]->value() / 200 * PI;
+    temp[i] = (double)HandPositionSliders[0][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i];
   }
   LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(temp));
   for (int i = 0; i < 5; i++) {
-    temp[i] = (double)HandPositionSliders[1][i]->value() / 200 * PI;
+    temp[i] = (double)HandPositionSliders[1][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i];
   }
   RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(temp));
 
@@ -734,7 +639,7 @@ void MyPlugin::onGenerate_ConfigurationClicked() {
 
   static const double ranges[7] =     {2 * PI , PI ,  PI      , -PI / 2.0 + 0.1 , 2.0 * PI , PI / 2.0 , PI / 2.0};
 
-  static const double lower_bounds[7] = { -PI , 0.0 , -PI/2.0 , 0.0,              -PI ,     -PI / 4.0 , -PI / 4.0};
+  static const double lower_bounds[7] = { -PI , 0.0 , -PI / 2.0 , 0.0,              -PI ,     -PI / 4.0 , -PI / 4.0};
 
   ROS_INFO("Generating Configurations");
 
@@ -742,7 +647,7 @@ void MyPlugin::onGenerate_ConfigurationClicked() {
   while (!CurrentData.empty()) CurrentData.pop_back();
 
   for (int i = 0 ; i < 100 ; i++) {
-    std::vector<double> temp_angles(7);  
+    std::vector<double> temp_angles(7);
     for (int j = 0 ; j < temp_angles.size(); j++) temp_angles[j] = ((double)rand() / (double)RAND_MAX * ranges[j]) + lower_bounds[j];
     GeneratedConfiguration.push_back(temp_angles);
   }
@@ -876,68 +781,68 @@ void MyPlugin::delay(int delay_time) {
 
 
 
-void MyPlugin::onDance_ButtonClicked(){
+void MyPlugin::onDance_ButtonClicked() {
 
-	read_saved_path();
-	ROS_INFO("Data Read");
-	ROS_INFO("Size of the data is [%d]" , (int)m_cmdValue.size());
-  if(!Path_Ex_Timer) {
-  	Path_Ex_Timer= new QTimer(this);
+  read_saved_path();
+  ROS_INFO("Data Read");
+  ROS_INFO("Size of the data is [%d]" , (int)m_cmdValue.size());
+  if (!Path_Ex_Timer) {
+    Path_Ex_Timer = new QTimer(this);
 
-  	  connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
+    connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
   }
   else Path_Ex_Timer->stop();
 
-	Path_idx = 0;
+  Path_idx = 0;
   Path_Ex_Timer->start(100);
 }
 
 
-void MyPlugin::read_saved_path(){
+void MyPlugin::read_saved_path() {
 
-	while(m_cmdValue.size() > 0) m_cmdValue.pop_back();
+  while (m_cmdValue.size() > 0) m_cmdValue.pop_back();
 
-	ROS_INFO("Reading Infos");
-	QFile file("/home/rocky/CollectedData/path.txt");
-    if(file.open(QFile::ReadOnly | QFile::Text))
-    {
-        while (!file.atEnd()) {
-            QByteArray arr = file.readLine();
-            arr.replace('\n',' ');
-            QList<QByteArray> arrList = arr.split(',');
-            if(arrList.size() < 7)
-            {
-                ROS_INFO("Data Errors");
-                continue;
-            }
-            std::vector<double> cmdValue;
-            foreach (QByteArray tmp, arrList) {
-                cmdValue.push_back(tmp.toDouble());
-            }
-            m_cmdValue.push_back(cmdValue);
-        }
+  ROS_INFO("Reading Infos");
+  QFile file("/home/rocky/CollectedData/path.txt");
+  if (file.open(QFile::ReadOnly | QFile::Text))
+  {
+    while (!file.atEnd()) {
+      QByteArray arr = file.readLine();
+      arr.replace('\n', ' ');
+      QList<QByteArray> arrList = arr.split(',');
+      if (arrList.size() < 7)
+      {
+        ROS_INFO("Data Errors");
+        continue;
+      }
+      std::vector<double> cmdValue;
+      foreach (QByteArray tmp, arrList) {
+        cmdValue.push_back(tmp.toDouble());
+      }
+      m_cmdValue.push_back(cmdValue);
     }
+  }
 }
 
 
-void MyPlugin::Path_Ex_Fun(){
+void MyPlugin::Path_Ex_Fun() {
 
-	ROS_INFO("Entered Step [%d]" , Path_idx);
-	std::vector<double>  temp_angles = m_cmdValue[Path_idx];
+  ROS_INFO("Entered Step [%d]" , Path_idx);
+  std::vector<double>  temp_angles = m_cmdValue[Path_idx];
 
-	std::vector<double> targetPosition;
+  std::vector<double> targetPosition;
 
-	for (int i = 0 ; i < 4 ; i++ )
-		targetPosition.push_back(temp_angles[i]);
+  for (int i = 0 ; i < 4 ; i++ )
+    targetPosition.push_back(temp_angles[i]);
 
-	while(targetPosition.size() < 21) targetPosition.push_back(0.0);
+  while (targetPosition.size() < 21) targetPosition.push_back(0.0);
 
-	targetPosition[7] = temp_angles[4];
-	targetPosition[14] = temp_angles[6];
+  targetPosition[7] = temp_angles[4];
+  targetPosition[14] = temp_angles[6];
 
-	JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
+  JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
 
-	if (Path_idx < m_cmdValue.size()-1) Path_idx++;
+  if (Path_idx < m_cmdValue.size() - 1) Path_idx++;
 }
 
 } // namespace
