@@ -165,7 +165,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect(ui_.actionList, &QListWidget::currentRowChanged, this, &MyPlugin::selectActionChanged);
   connect(ui_.saveAction, &QPushButton::clicked, this, &MyPlugin::saveAction);
   connect(ui_.removeAction, &QPushButton::clicked, this, &MyPlugin::onBtnRemoveClicked);
-  connect(ui_.preview, &QPushButton::clicked, this, &MyPlugin::preViewAction);
+  connect(ui_.modifyAction, &QPushButton::clicked, this, &MyPlugin::modifyAction);
   connect(ui_.play, &QPushButton::clicked, this, &MyPlugin::play);
   connect(ui_.generate, &QPushButton::clicked, this, &MyPlugin::generateActuatorData);
   connect(ui_.addAction, &QPushButton::clicked, this, &MyPlugin::onBtnAddClicked);

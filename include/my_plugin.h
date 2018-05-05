@@ -111,7 +111,7 @@ protected slots:
 //add by lzj
   void onBtnAddClicked();
   void onBtnRemoveClicked();
-  void preViewAction(int nActionIdx);
+  void modifyAction();
   void play();
   void selectActionChanged(int nActionIdx);
   void readAction();

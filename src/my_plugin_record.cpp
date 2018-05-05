@@ -171,11 +171,12 @@ void MyPlugin::removeAction(int nActionIdx)
   }
 }
 
-void MyPlugin::preViewAction(int nActionIdx)
+void MyPlugin::modifyAction()
 {
-  if (nActionIdx > 0) //the first action is initial pose which can not preview
+  if (ui_.actionList->currentRow() +1)
   {
-    //todo
+    m_Actions[ui_.actionList->currentRow()] = currentPosition;
+    m_ActionsTimes[ui_.actionList->currentRow()] = ui_.lineEdit->text().toDouble();
   }
 }
 
@@ -216,9 +217,8 @@ void MyPlugin::play()
       playcall_back(start_position, goal_position, time);
       currentidx++;
     }
-
-  playing_switch = false;
   }
+  playing_switch = false;
 }
 
 void MyPlugin::selectActionChanged(int nActionIdx)
@@ -255,30 +255,30 @@ void MyPlugin::readAction()
           switch (nType) {
           case QXmlStreamReader::StartElement:
           {
-              QString strName = reader.name().toString();
-              if(strName == "Actions")
+            QString strName = reader.name().toString();
+            if (strName == "Actions")
+            {
+              while (!reader.atEnd())
               {
-                  while (!reader.atEnd())
+                reader.readNextStartElement();
+                QString actionName = reader.name().toString();
+                reader.readNextStartElement();
+                double time = reader.readElementText().toDouble();
+                reader.readNextStartElement();
+                int nCount = reader.readElementText().toUInt();
+                if (nCount > 0)
+                {
+                  std::vector<double> position;
+                  for (int i = 0; i < nCount; ++i)
                   {
-                      reader.readNextStartElement();
-                      QString actionName = reader.name().toString();
-                      reader.readNextStartElement();
-                      double time = reader.readElementText().toDouble();
-                      reader.readNextStartElement();
-                      int nCount = reader.readElementText().toUInt();
-                      if (nCount > 0)
-                      {
-                            std::vector<double> position;
-                            for (int i = 0; i < nCount; ++i)
-                            {
-                                reader.readNextStartElement();
-                                position.push_back(reader.readElementText().toDouble());
-                            }
-                            addAction(position,time,actionName);
-                       }
-                       reader.readNextStartElement();
+                    reader.readNextStartElement();
+                    position.push_back(reader.readElementText().toDouble());
                   }
+                  addAction(position, time, actionName);
+                }
+                reader.readNextStartElement();
               }
+            }
           }
           break;
           default:
@@ -304,9 +304,9 @@ void MyPlugin::saveAction()
     QString path = dialog.selectedFiles().first();
     if (path.size() > 0)
     {
-      if(!path.endsWith(".action"))
+      if (!path.endsWith(".action"))
       {
-          path += ".action";
+        path += ".action";
       }
       QFile file(path);
       if (file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
@@ -361,9 +361,9 @@ void MyPlugin::clearAction()
   m_Actions.clear();
   m_ActionsTimes.clear();
   int nRow = ui_.actionList->count();
-  for (int i = nRow; --i >= 0;)
+  for (int i = nRow ; --i >= 0;)
   {
-    QListWidgetItem * pItem = ui_.actionList->takeItem(i);
+    QListWidgetItem * pItem = ui_.actionList->takeItem(0);
     delete pItem;
   }
 }
