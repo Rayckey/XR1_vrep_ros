@@ -25,6 +25,34 @@
 #include <opencv2/core/core.hpp>
 
 
+
+#include <QStringList>
+#include "ros/ros.h"
+#include "vrep_test/JointAngles.h"
+#include "vrep_test/IK_msg.h"
+#include "vrep_test/HandJointAngles.h"
+#include "std_msgs/Bool.h"
+#include "std_msgs/Int32.h"
+#include "vrep_test/InertiaPara.h"
+#include "XR1.h"
+#include "geometry_msgs/Twist.h"
+#include <QMessageBox>
+#include <QLabel>
+#include <QGroupBox>
+#include <QFile>
+#include <QTime>
+#include <QTextStream>
+#include <sensor_msgs/image_encodings.h>
+#include <cv_bridge/cv_bridge.h>
+#include <opencv2/imgproc/imgproc.hpp>
+#include "rosbag/bag.h"
+#include <tf2_ros/transform_broadcaster.h>
+#include <QListWidget>
+#include <QFileDialog>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
+
+
 namespace vrep_test {
 
 class MyPlugin
@@ -93,6 +121,13 @@ private:
   void clearAction();
   void addAction(std::vector<double> & position,double time,QString actionName);
   void removeAction(int nActionIdx);
+
+  bool playing_switch;
+
+
+protected:
+
+  void playcall_back( std::vector<double > start_position ,  std::vector<double> goal_position ,  double time);
 private:
   Ui::MyPluginWidget ui_;
   QWidget* widget_;
@@ -152,6 +187,10 @@ private:
   QVector<std::vector<double> > m_Actions;
   QVector<double> m_ActionsTimes;
 
+
+  QTimer * playback_timer;
+
+
 private slots:
   void onStartButtonClicked();
   void onStopButtonClicked();
@@ -160,6 +199,8 @@ private slots:
   void Path_Ex_Fun();
   void read_saved_path();
   void onDance_ButtonClicked();
+
+  void updateTargetSlider(std::vector<double> v);
 
 }; //class
 } // namespace

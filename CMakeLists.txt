@@ -53,6 +53,7 @@ set (vrep_test_SRCS
   src/my_plugin.cpp
   src/XR1.cpp
   src/my_plugin_ultis.cpp
+  src/my_plugin_record.cpp
 )
 
 set(vrep_test_HDRS
