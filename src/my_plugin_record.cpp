@@ -249,26 +249,36 @@ void MyPlugin::readAction()
       {
         clearAction();
         QXmlStreamReader reader(&file);
-        while (!reader.atEnd()) {
+        while (!reader.atEnd())
+        {
           QXmlStreamReader::TokenType nType = reader.readNext();
           switch (nType) {
           case QXmlStreamReader::StartElement:
           {
-            QString strName = reader.name().toString();
-            reader.readNextStartElement();
-            double time = reader.readElementText().toDouble();
-            reader.readNextStartElement();
-            int nCount = reader.readElementText().toUInt();
-            if (nCount > 0)
-            {
-              std::vector<double> position;
-              for (int i = 0; i < nCount; ++i)
+              QString strName = reader.name().toString();
+              if(strName == "Actions")
               {
-                reader.readNextStartElement();
-                position.push_back(reader.readElementText().toDouble());
+                  while (!reader.atEnd())
+                  {
+                      reader.readNextStartElement();
+                      QString actionName = reader.name().toString();
+                      reader.readNextStartElement();
+                      double time = reader.readElementText().toDouble();
+                      reader.readNextStartElement();
+                      int nCount = reader.readElementText().toUInt();
+                      if (nCount > 0)
+                      {
+                            std::vector<double> position;
+                            for (int i = 0; i < nCount; ++i)
+                            {
+                                reader.readNextStartElement();
+                                position.push_back(reader.readElementText().toDouble());
+                            }
+                            addAction(position,time,actionName);
+                       }
+                       reader.readNextStartElement();
+                  }
               }
-              addAction(position, time, strName);
-            }
           }
           break;
           default:
@@ -294,12 +304,17 @@ void MyPlugin::saveAction()
     QString path = dialog.selectedFiles().first();
     if (path.size() > 0)
     {
+      if(!path.endsWith(".action"))
+      {
+          path += ".action";
+      }
       QFile file(path);
       if (file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
       {
         QXmlStreamWriter writer(&file);
         writer.setAutoFormatting(true);
         writer.writeStartDocument("1.0", true);
+        writer.writeStartElement("Actions");
         for (int i = 0; i < ui_.actionList->count(); ++i)
         {
           writer.writeStartElement(ui_.actionList->item(i)->text());
@@ -312,6 +327,7 @@ void MyPlugin::saveAction()
           }
           writer.writeEndElement();
         }
+        writer.writeEndElement();
         writer.writeEndDocument();
       }
       file.close();
