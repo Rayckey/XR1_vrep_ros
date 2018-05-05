@@ -5,6 +5,7 @@
 #include <vrep_test/ui_my_plugin.h>
 
 #include <QWidget>
+#include <QMap>
 #include "ros/ros.h"
 #include "vrep_test/JointAngles.h"
 #include "vrep_test/IK_msg.h"
@@ -79,8 +80,19 @@ protected slots:
   virtual void onGenerate_ConfigurationClicked();
   virtual void onSave_CurrentClicked();
   virtual void onCollect_CurrentClicked();
-
-
+//add by lzj
+  void onBtnAddClicked();
+  void onBtnRemoveClicked();
+  void preViewAction(int nActionIdx);
+  void play();
+  void selectActionChanged(int nActionIdx);
+  void readAction();
+  void saveAction();
+  void generateActuatorData();
+private:
+  void clearAction();
+  void addAction(std::vector<double> & position,double time,QString actionName);
+  void removeAction(int nActionIdx);
 private:
   Ui::MyPluginWidget ui_;
   QWidget* widget_;
@@ -135,6 +147,10 @@ private:
   QTimer * Path_Ex_Timer;
 
   int Path_idx;
+
+  //add by lzj
+  QVector<std::vector<double> > m_Actions;
+  QVector<double> m_ActionsTimes;
 
 private slots:
   void onStartButtonClicked();
