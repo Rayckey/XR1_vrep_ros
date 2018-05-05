@@ -173,7 +173,7 @@ void MyPlugin::removeAction(int nActionIdx)
 
 void MyPlugin::modifyAction()
 {
-  if (ui_.actionList->currentRow() +1)
+  if (ui_.actionList->currentRow() + 1)
   {
     m_Actions[ui_.actionList->currentRow()] = currentPosition;
     m_ActionsTimes[ui_.actionList->currentRow()] = ui_.lineEdit->text().toDouble();
@@ -188,22 +188,22 @@ void MyPlugin::play()
   {
     int currentidx;
 
-    ROS_INFO("current idx is [%d]", currentidx);
+    // ROS_INFO("current idx is [%d]", currentidx);
 
     if (ui_.actionList->currentRow() + 1)
       currentidx = ui_.actionList->currentRow();
     else currentidx = 0;
 
-    ROS_INFO("current idx is [%d]", currentidx);
+    // ROS_INFO("current idx is [%d]", currentidx);
 
     while ( currentidx < ui_.actionList->count()) {
 
       std::vector<double> goal_position = m_Actions.at(currentidx);
       double time = m_ActionsTimes.at(currentidx);
 
-      ROS_INFO("We got this many joints [%d]", goal_position.size());
+      // ROS_INFO("We got this many joints [%d]", goal_position.size());
 
-      ROS_INFO("We got this much time [%f]", time);
+      // ROS_INFO("We got this much time [%f]", time);
 
       std::vector<double> start_position;
       if (currentidx >  0)
@@ -213,7 +213,7 @@ void MyPlugin::play()
           start_position.push_back(0.0);
       }
 
-      ROS_INFO("We got this many joints [%d]", start_position.size());
+      // ROS_INFO("We got this many joints [%d]", start_position.size());
       playcall_back(start_position, goal_position, time);
       currentidx++;
     }
@@ -337,23 +337,38 @@ void MyPlugin::saveAction()
 
 void MyPlugin::generateActuatorData()
 {
-  QFileDialog dialog(0, tr("Save Action"), QDir::currentPath());
-  dialog.setFileMode(QFileDialog::AnyFile);
-  dialog.setAcceptMode(QFileDialog::AcceptSave);
-  dialog.setNameFilter(tr("ActuatorData(*.data)"));
-  if (dialog.exec() == QDialog::Accepted)
-  {
-    QString path = dialog.selectedFiles().first();
-    if (path.size() > 0)
-    {
-      QFile file(path);
-      if (file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
-      {
 
+  std::vector<std::vector<double> > gen_data = generateActuatorDataHelper() ;
+
+  if (gen_data.size()) {
+    QFileDialog dialog(0, tr("Save Action"), QDir::currentPath());
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setNameFilter(tr("ActuatorData(*.data)"));
+
+    if (dialog.exec() == QDialog::Accepted)
+    {
+      QString path = dialog.selectedFiles().first();
+      if (path.size() > 0)
+      {
+        QFile file(path);
+        if (file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
+        {
+          QTextStream out(&file);
+
+          for (int i = 0 ; i < gen_data.size() ; i++) {
+            for (int j = 0 ; j < gen_data[0].size() ; j++) {
+              out << gen_data[i][j];
+            }
+            out <<  endl;
+          }
+        }
+        file.close();
       }
-      file.close();
     }
   }
+
+
 }
 
 void MyPlugin::clearAction()
@@ -382,7 +397,7 @@ void MyPlugin::playcall_back( std::vector<double > start_position ,  std::vector
   int steps;
   steps = floor(time * 1000 / 10);
 
-  ROS_INFO("We got this many steps [%d]" , steps);
+  // ROS_INFO("We got this many steps [%d]" , steps);
 
   std::vector<double> increments;
   std::vector<double> intermediate_position = start_position;
@@ -391,7 +406,7 @@ void MyPlugin::playcall_back( std::vector<double > start_position ,  std::vector
     increments.push_back((goal_position[i] - start_position[i]) / (double)steps);
   }
 
-  ROS_INFO("We got this many increments [%d]" , increments.size());
+  // ROS_INFO("We got this many increments [%d]" , increments.size());
 
   for (int i = 0 ; i < steps + 1 ; i++) {
     for (int j = 0 ; j < goal_position.size() ; j++)
@@ -405,6 +420,55 @@ void MyPlugin::playcall_back( std::vector<double > start_position ,  std::vector
 
 }
 
+
+
+std::vector<std::vector<double> > MyPlugin::generateActuatorDataHelper() {
+
+  std::vector<std::vector<double> > res;
+
+  int currentidx = 0;
+
+  while ( currentidx < ui_.actionList->count()) {
+
+    std::vector<double> goal_position = m_Actions.at(currentidx);
+    double time = m_ActionsTimes.at(currentidx);
+
+
+    std::vector<double> start_position;
+
+    if (currentidx >  0)
+      start_position = m_Actions.at(currentidx - 1);
+    else {
+      while (start_position.size() < goal_position.size())
+        start_position.push_back(0.0);
+    }
+
+    int steps;
+
+    steps = floor(time * 1000 / 10);
+
+
+    std::vector<double> increments;
+
+    for (int i = 0 ; i < start_position.size() ; i++) {
+      increments.push_back((goal_position[i] - start_position[i]) / (double)steps);
+    }
+
+
+    for (int i = 1 ; i < steps + 1 ; i++) {
+      std::vector<double> temp_res;
+      for (int j = 0 ; j < goal_position.size() ; j++)
+        temp_res.push_back(increments[j] * (double)i + start_position[j]) ;
+
+      res.push_back(temp_res);
+    }
+
+    currentidx++;
+  }
+
+  return res;
+
+}
 
 } // namespace
 

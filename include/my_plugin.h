@@ -119,7 +119,7 @@ protected slots:
   void generateActuatorData();
 private:
   void clearAction();
-  void addAction(std::vector<double> & position,double time,QString actionName);
+  void addAction(std::vector<double> & position, double time, QString actionName);
   void removeAction(int nActionIdx);
 
   bool playing_switch;
@@ -161,7 +161,7 @@ private:
 
   std::vector<std::vector<double> > GeneratedConfiguration;
   std::vector<std::vector<double> > CurrentData;
-  
+
   std::vector<std::vector<double> > m_cmdValue;
 
 
@@ -189,6 +189,8 @@ private:
 
 
   QTimer * playback_timer;
+
+  std::vector<std::vector<double> >  generateActuatorDataHelper();
 
 
 private slots:
