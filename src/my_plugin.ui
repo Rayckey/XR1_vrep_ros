@@ -721,8 +721,6 @@
       </item>
      </layout>
     </widget>
-    <zorder>image_frame</zorder>
-    <zorder>gridLayoutWidget</zorder>
    </widget>
    <widget class="QWidget" name="LeftArm_tab">
     <attribute name="title">
@@ -1743,8 +1741,6 @@
       </item>
      </layout>
     </widget>
-    <zorder>label_35</zorder>
-    <zorder>gridLayoutWidget_5</zorder>
    </widget>
    <widget class="QWidget" name="IK_tab">
     <attribute name="title">
@@ -2099,24 +2095,122 @@
        <property name="lineWidth">
         <number>1</number>
        </property>
-       <zorder>horizontalLayoutWidget</zorder>
-       <zorder>groupBox_5</zorder>
       </widget>
      </item>
     </layout>
    </widget>
   </widget>
-  <zorder>groupBox_2</zorder>
-  <zorder>groupBox</zorder>
-  <zorder>groupBox_7</zorder>
-  <zorder>InertiaParaQuery</zorder>
-  <zorder>Generate_Configuration</zorder>
-  <zorder>Collect_Current</zorder>
-  <zorder>Save_Current</zorder>
-  <zorder>Dance_Button</zorder>
-  <zorder>image_frame</zorder>
-  <zorder>tabWidget</zorder>
-  <zorder>groupBox_5</zorder>
+  <widget class="QPushButton" name="addAction">
+   <property name="geometry">
+    <rect>
+     <x>770</x>
+     <y>410</y>
+     <width>121</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Add Action</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="removeAction">
+   <property name="geometry">
+    <rect>
+     <x>770</x>
+     <y>440</y>
+     <width>121</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Remove Action</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit">
+   <property name="geometry">
+    <rect>
+     <x>770</x>
+     <y>550</y>
+     <width>113</width>
+     <height>25</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="saveAction">
+   <property name="geometry">
+    <rect>
+     <x>770</x>
+     <y>470</y>
+     <width>121</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="readAction">
+   <property name="geometry">
+    <rect>
+     <x>770</x>
+     <y>500</y>
+     <width>121</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Read</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="play">
+   <property name="geometry">
+    <rect>
+     <x>897</x>
+     <y>440</y>
+     <width>112</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>play</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="preview">
+   <property name="geometry">
+    <rect>
+     <x>897</x>
+     <y>410</y>
+     <width>112</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>preview</string>
+   </property>
+  </widget>
+  <widget class="QListWidget" name="actionList">
+   <property name="geometry">
+    <rect>
+     <x>440</x>
+     <y>400</y>
+     <width>256</width>
+     <height>192</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="generate">
+   <property name="geometry">
+    <rect>
+     <x>900</x>
+     <y>470</y>
+     <width>112</width>
+     <height>25</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>generate</string>
+   </property>
+  </widget>
  </widget>
  <customwidgets>
   <customwidget>

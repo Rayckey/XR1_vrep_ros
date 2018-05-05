@@ -24,7 +24,10 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include "rosbag/bag.h"
 #include <tf2_ros/transform_broadcaster.h>
-
+#include <QListWidget>
+#include <QFileDialog>
+#include <QXmlStreamWriter>
+#include <QXmlStreamReader>
 
 #define PI 3.141592654
 namespace vrep_test {
@@ -181,6 +184,16 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   // Emergency Dance
 
   connect(ui_.Dance_Button, SIGNAL(clicked()) , this , SLOT(onDance_ButtonClicked()));
+
+  //add by lzj
+  connect(ui_.readAction,&QPushButton::clicked,this,&MyPlugin::readAction);
+  connect(ui_.actionList,&QListWidget::currentRowChanged,this,&MyPlugin::selectActionChanged);
+  connect(ui_.saveAction,&QPushButton::clicked,this,&MyPlugin::saveAction);
+  connect(ui_.removeAction,&QPushButton::clicked,this,&MyPlugin::onBtnRemoveClicked);
+  connect(ui_.preview,&QPushButton::clicked,this,&MyPlugin::preViewAction);
+  connect(ui_.play,&QPushButton::clicked,this,&MyPlugin::play);
+  connect(ui_.generate,&QPushButton::clicked,this,&MyPlugin::generateActuatorData);
+  connect(ui_.addAction,&QPushButton::clicked,this,&MyPlugin::onBtnAddClicked);
 
 }
 
@@ -723,6 +736,16 @@ void MyPlugin::onCollect_CurrentClicked() {
   ui_.Save_Current->setEnabled(true);
 }
 
+void MyPlugin::onBtnAddClicked()
+{
+    addAction(currentPosition,ui_.lineEdit->text().toDouble(),tr("newAction%1").arg(ui_.actionList->count()));
+}
+
+void MyPlugin::onBtnRemoveClicked()
+{
+    removeAction(ui_.actionList->currentRow());
+}
+
 std::vector<double> MyPlugin::processCurrents() {
 
   std::vector<double> res;
@@ -843,6 +866,169 @@ void MyPlugin::Path_Ex_Fun() {
   JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
 
   if (Path_idx < m_cmdValue.size() - 1) Path_idx++;
+}
+
+void MyPlugin::addAction(std::vector<double> &position, double time, QString actionName)
+{
+    QListWidgetItem * pItem = new QListWidgetItem(actionName,ui_.actionList);
+    pItem->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEditable|Qt::ItemIsUserCheckable|Qt::ItemIsEnabled);
+    m_Actions.push_back(position);
+    time = time > 0 ? time : 5;
+    m_ActionsTimes.push_back(time);
+}
+
+void MyPlugin::removeAction(int nActionIdx)
+{
+    if(nActionIdx < ui_.actionList->count())
+    {
+        QListWidgetItem * pItem = ui_.actionList->takeItem(nActionIdx);
+        delete pItem;
+        m_Actions.remove(nActionIdx);
+        m_ActionsTimes.remove(nActionIdx);
+    }
+}
+
+void MyPlugin::preViewAction(int nActionIdx)
+{
+    if(nActionIdx > 0)//the first action is initial pose which can not preview
+    {
+        //todo
+    }
+}
+
+void MyPlugin::play()
+{
+    if(ui_.actionList->count() > 1)
+    {
+        //todo
+    }
+}
+
+void MyPlugin::selectActionChanged(int nActionIdx)
+{
+    if(nActionIdx < ui_.actionList->count() && nActionIdx>=0)
+    {
+        std::vector<double> position = m_Actions.at(nActionIdx);
+        double time = m_ActionsTimes.at(nActionIdx);
+        ui_.lineEdit->setText(tr("%1").arg(time));
+        //todo
+    }
+}
+
+void MyPlugin::readAction()
+{
+    QFileDialog dialog(0,tr("Read Action"),QDir::currentPath());
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setNameFilter(tr("Action(*.action)"));
+    if(dialog.exec() == QDialog::Accepted)
+    {
+        QString path = dialog.selectedFiles().first();
+        if(path.size() > 0)
+        {
+            QFile file(path);
+            if(file.open(QFile::ReadOnly | QFile::Text))
+            {
+
+                QXmlStreamReader reader(&file);
+                while (!reader.atEnd()) {
+                    QXmlStreamReader::TokenType nType = reader.readNext();
+                    switch (nType) {
+                    case QXmlStreamReader::StartElement:
+                    {
+                        QString strName = reader.name().toString();
+                        reader.readNextStartElement();
+                        double time = reader.readElementText().toDouble();
+                        reader.readNextStartElement();
+                        int nCount = reader.readElementText().toUInt();
+                        if(nCount > 0)
+                        {
+                            std::vector<double> position;
+                            for(int i=0;i<nCount;++i)
+                            {
+                                reader.readNextStartElement();
+                                position.push_back(reader.readElementText().toDouble());
+                            }
+                            addAction(position,time,strName);
+                        }
+                    }
+                        break;
+                    default:
+                        break;
+                    }
+                }
+            }
+            file.close();
+        }
+    }
+}
+
+void MyPlugin::saveAction()
+{
+    if(ui_.actionList->count() < 2)
+        return;
+    QFileDialog dialog(0,tr("Save Action"),QDir::currentPath());
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setNameFilter(tr("Action(*.action)"));
+    if(dialog.exec() == QDialog::Accepted)
+    {
+        QString path = dialog.selectedFiles().first();
+        if(path.size() > 0)
+        {
+            QFile file(path);
+            if(file.open(QFile::WriteOnly|QFile::Text|QFile::Truncate))
+            {
+                clearAction();
+                QXmlStreamWriter writer(&file);
+                writer.setAutoFormatting(true);
+                writer.writeStartDocument("1.0",true);
+                for(int i=0;i<ui_.actionList->count();++i)
+                {
+                    writer.writeStartElement(ui_.actionList->item(i)->text());
+                    writer.writeTextElement(tr("Time"),tr("%1").arg(m_ActionsTimes.at(i)));
+                    writer.writeTextElement(tr("Count"),tr("%1").arg(m_Actions.at(i).size()));
+                    for(int nPos=0;nPos<m_Actions.at(i).size();++nPos)
+                    {
+                        writer.writeTextElement(tr("Pose%1").arg(nPos),tr("%1").arg(m_Actions.at(i).at(nPos)));
+                    }
+                }
+            }
+            file.close();
+        }
+    }
+}
+
+void MyPlugin::generateActuatorData()
+{
+    QFileDialog dialog(0,tr("Save Action"),QDir::currentPath());
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setNameFilter(tr("ActuatorData(*.data)"));
+    if(dialog.exec() == QDialog::Accepted)
+    {
+        QString path = dialog.selectedFiles().first();
+        if(path.size() > 0)
+        {
+            QFile file(path);
+            if(file.open(QFile::WriteOnly|QFile::Text|QFile::Truncate))
+            {
+
+            }
+            file.close();
+        }
+    }
+}
+
+void MyPlugin::clearAction()
+{
+    m_Actions.clear();
+    m_ActionsTimes.clear();
+    int nRow = ui_.actionList->count();
+    for(int i=nRow;--i>=0;)
+    {
+        QListWidgetItem * pItem = ui_.actionList->takeItem(i);
+        delete pItem;
+    }
 }
 
 } // namespace
