@@ -164,12 +164,10 @@ void XR1::subscribeJointCurrentPosition(vrep_test::JointAngles msg) {
 
 void XR1::callInertiaPara(ros::ServiceClient client) {
 
-
   const static char* args2[] = {
     "_Shoulder_X", "_Shoulder_Y", "_Elbow_Z", "_Elbow_X", "_Wrist_Z", "_Wrist_Y", "_Wrist_X"
   };
   const static std::vector<std::string> Arm_Frames_IDs(args2, args2 + 7);
-
 
   const static char* args3[] = {
     "_Shoulder_Body", "_Arm_Body", "_Elbow_Body", "_Forearm_Body", "_Wrist_Body", "_Wrist_Body2", "_Hand_Body"

@@ -573,11 +573,11 @@ void MyPlugin::onHandJointTargetPositionChanged(int i) {
   for (int i = 0; i < 5; i++) {
     temp[i] = (double)HandPositionSliders[0][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i];
   }
-  LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(temp));
+  if (!playing_switch) LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(temp));
   for (int i = 0; i < 5; i++) {
     temp[i] = (double)HandPositionSliders[1][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i];
   }
-  RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(temp));
+  if (!playing_switch) RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(temp));
 
 }
 

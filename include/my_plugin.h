@@ -120,6 +120,7 @@ protected slots:
 private:
   void clearAction();
   void addAction(std::vector<double> & position, double time, QString actionName);
+  void addHandAction(std::vector<double> position);
   void removeAction(int nActionIdx);
 
   bool playing_switch;
@@ -127,7 +128,9 @@ private:
 
 protected:
 
-  void playcall_back( std::vector<double > start_position ,  std::vector<double> goal_position ,  double time);
+  void playcall_back( std::vector<double > start_position ,  std::vector<double> goal_position, 
+    std::vector<double > start_hand_position ,  std::vector<double> goal_hand_position ,  double time);
+
 private:
   Ui::MyPluginWidget ui_;
   QWidget* widget_;
@@ -186,12 +189,13 @@ private:
   //add by lzj
   QVector<std::vector<double> > m_Actions;
   QVector<double> m_ActionsTimes;
+  QVector<std::vector<double> > m_ActionsHands;
 
 
   QTimer * playback_timer;
 
   std::vector<std::vector<double> >  generateActuatorDataHelper();
-
+  std::vector<double> getHandTargetPositions();
 
 private slots:
   void onStartButtonClicked();
@@ -202,7 +206,7 @@ private slots:
   void read_saved_path();
   void onDance_ButtonClicked();
 
-  void updateTargetSlider(std::vector<double> v);
+  void updateTargetSlider(std::vector<double> v , std::vector<double> u);
 
 }; //class
 } // namespace

@@ -9,7 +9,7 @@
 ```
 $ git clone https://github.com/Rayckey/XR1_vrep_ros.git vrep_test
 ```
-2. Return to work space and build using catkin build (catkin make may cause issues)
+2. Return to work space and build using catkin build (or catkin_make)
 ```
 $ catkin build
 ```
@@ -27,37 +27,29 @@ $ rqt --standalone vrep_test
 
 ## Joint Control
 0. Launch roscore
-1. Launch V-REP by going into the V-REP installation folder and type the following in a terminal
+1. Launch rqt and V-REP by going into the source folder and excecute script
 ```
-$ ./vrep.sh
+$ cd /PATH/TO/VREP_TEST/
+$ ./XR1_vrep.sh
 ```
-2. Open the scene file under `/PATH/TO/VREP_TEST/model `
-3. Launch rqt , and Click 'Start Simulation' to begin the simulation on V-REP
-4. The left hand side allow simple joint control
 
 ## Inverse Kinematics (Generated in V-REP)
-5. Switch to Inverse Kinematics Mode by changing the combobox next to the `Start Simulation` button
-6. The Right Hand Side allow manipulation of the End Effector OR just drag the `Left_Tip_Target` or `Right_Tip_Target` Dummies on V-REP simulation
-
-## Finger Manipulation
-7. The lower Group allow simple finger control
-
-## Record and Play
-8. Use `rqt_bag` for publiher recording and playing
+2. Switch to Inverse Kinematics Mode by Going into the inverse kinematics tab
+3. Set Position of the End Effector OR just drag the `Left_Tip_Target` or `Right_Tip_Target` Dummies on V-REP simulation
 
 ## Vision Sensors
-9. Click `Refresh` to detect all publishing images
+4. Click `Refresh` to detect all publishing images
+5. Use the combo box to select image topics
 
-
-
-### Known Issues
-1. Twist commands not processing correctly
-2. Inverse Kinematics on V-REP can cause quite a lot of issues when reaching undesireable poses
-
-### Todo
-1. DH parameters for all links (Currently only have forward kinematics for arms)
-2. Analytical solution for inverse kinematics
-3. Torque control 
+## Record and Play
+6. Use the Add Action button to record the current position, use the 'Set Time(s)' text box to modify the amount of time this action should take
+7. Selecting the action will allow the user to review the configuration
+8. Modify Action will overwrite the seleted action with the current configuration
+9. Pressing Play will play the animation starting from the SELETED action
+10. Use the Remove Action to remove the selected action
+11. Use Save and Read button to save and load the META data (i.e. only the key frames will be saved)
+12. Use Generate Button to write out the position data needed to drive the robot
+ 
 
 # XR1_vrep_ros
 

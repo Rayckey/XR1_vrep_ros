@@ -22,6 +22,7 @@ namespace vrep_test {
 void MyPlugin::onBtnAddClicked()
 {
   addAction(currentPosition, ui_.lineEdit->text().toDouble(), tr("newAction%1").arg(ui_.actionList->count()));
+  addHandAction(getHandTargetPositions());
 }
 
 void MyPlugin::onBtnRemoveClicked()
@@ -158,7 +159,15 @@ void MyPlugin::addAction(std::vector<double> &position, double time, QString act
   m_Actions.push_back(position);
   time = time > 0 ? time : 5;
   m_ActionsTimes.push_back(time);
+  // m_ActionsHands.push_back(hand_position);
 }
+
+void MyPlugin::addHandAction(std::vector<double> position)
+{
+  m_ActionsHands.push_back(position);
+  // m_ActionsHands.push_back(hand_position);
+}
+
 
 void MyPlugin::removeAction(int nActionIdx)
 {
@@ -168,6 +177,7 @@ void MyPlugin::removeAction(int nActionIdx)
     delete pItem;
     m_Actions.remove(nActionIdx);
     m_ActionsTimes.remove(nActionIdx);
+    m_ActionsHands.remove(nActionIdx);
   }
 }
 
@@ -177,11 +187,14 @@ void MyPlugin::modifyAction()
   {
     m_Actions[ui_.actionList->currentRow()] = currentPosition;
     m_ActionsTimes[ui_.actionList->currentRow()] = ui_.lineEdit->text().toDouble();
+    m_ActionsHands[ui_.actionList->currentRow()] = getHandTargetPositions();
   }
 }
 
 void MyPlugin::play()
 {
+
+  ui_.tabWidget->setCurrentIndex(0);
 
   playing_switch = true;
   if (ui_.actionList->count() > 1 && ui_.actionList->currentRow() != ui_.actionList->count() - 1)
@@ -199,6 +212,7 @@ void MyPlugin::play()
     while ( currentidx < ui_.actionList->count()) {
 
       std::vector<double> goal_position = m_Actions.at(currentidx);
+      std::vector<double> goal_hand_position = m_ActionsHands.at(currentidx);
       double time = m_ActionsTimes.at(currentidx);
 
       // ROS_INFO("We got this many joints [%d]", goal_position.size());
@@ -206,15 +220,21 @@ void MyPlugin::play()
       // ROS_INFO("We got this much time [%f]", time);
 
       std::vector<double> start_position;
-      if (currentidx >  0)
+      std::vector<double> start_hand_position;
+
+      if (currentidx >  0) {
+        start_hand_position = m_ActionsHands.at(currentidx - 1);
         start_position = m_Actions.at(currentidx - 1);
+      }
       else {
         while (start_position.size() < goal_position.size())
           start_position.push_back(0.0);
+        while (start_hand_position.size() < goal_hand_position.size())
+          start_hand_position.push_back(0.0);
       }
 
       // ROS_INFO("We got this many joints [%d]", start_position.size());
-      playcall_back(start_position, goal_position, time);
+      playcall_back(start_position, goal_position, start_hand_position, goal_hand_position, time);
       currentidx++;
     }
   }
@@ -226,10 +246,11 @@ void MyPlugin::selectActionChanged(int nActionIdx)
   if (nActionIdx < ui_.actionList->count() && nActionIdx >= 0)
   {
     std::vector<double> position = m_Actions.at(nActionIdx);
+    std::vector<double> hand_position = m_ActionsHands.at(nActionIdx);
     double time = m_ActionsTimes.at(nActionIdx);
     ui_.lineEdit->setText(tr("%1").arg(time));
 
-    updateTargetSlider(position);
+    updateTargetSlider(position , hand_position);
     //todo
   }
 }
@@ -276,6 +297,20 @@ void MyPlugin::readAction()
                   }
                   addAction(position, time, actionName);
                 }
+
+                reader.readNextStartElement();
+                nCount = reader.readElementText().toUInt();
+                if (nCount > 0)
+                {
+                  std::vector<double> position;
+                  for (int i = 0; i < nCount; ++i)
+                  {
+                    reader.readNextStartElement();
+                    position.push_back(reader.readElementText().toDouble());
+                  }
+                  addHandAction(position);
+                }
+
                 reader.readNextStartElement();
               }
             }
@@ -324,6 +359,12 @@ void MyPlugin::saveAction()
           {
             // ROS_INFO("Writing row [%d] [%d]" , i , nPos);
             writer.writeTextElement(tr("Pose%1").arg(nPos), tr("%1").arg(m_Actions.at(i)[nPos]));
+          }
+          writer.writeTextElement(tr("Count"), tr("%1").arg(m_ActionsHands.at(i).size()));
+          for (int nPos = 0; nPos < m_ActionsHands.at(i).size(); ++nPos)
+          {
+            // ROS_INFO("Writing row [%d] [%d]" , i , nPos);
+            writer.writeTextElement(tr("HandPose%1").arg(nPos), tr("%1").arg(m_ActionsHands.at(i)[nPos]));
           }
           writer.writeEndElement();
         }
@@ -383,16 +424,28 @@ void MyPlugin::clearAction()
   }
 }
 
-void MyPlugin::updateTargetSlider(std::vector<double> v) {
+void MyPlugin::updateTargetSlider(std::vector<double> v , std::vector<double> u) {
   for (int i = 0; i < targetPositionSliders.size(); i++) {
     targetPositionSliders[i]->setValue((int) ((v[i] - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * 100 ));
   }
 
+  double left_hand_temp[5]; double right_hand_temp[5];
+  for (int i = 0; i < HandPositionSliders[0].size(); i++) {
+    HandPositionSliders[0][i]->setValue((int) ((u[i] - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100 ));
+    HandPositionSliders[1][i]->setValue((int) ((u[i + 5] - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100 ));
+
+    left_hand_temp[i] = u[i];
+    right_hand_temp[i] = u[i + 5];
+  }
+
   JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(v));
+
+  LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(left_hand_temp));
+  RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(right_hand_temp));
 }
 
-void MyPlugin::playcall_back( std::vector<double > start_position ,  std::vector<double> goal_position ,  double time) {
-
+void MyPlugin::playcall_back( std::vector<double > start_position ,  std::vector<double> goal_position ,
+                              std::vector<double > start_hand_position ,  std::vector<double> goal_hand_position , double time) {
 
   int steps;
   steps = floor(time * 1000 / 10);
@@ -402,8 +455,16 @@ void MyPlugin::playcall_back( std::vector<double > start_position ,  std::vector
   std::vector<double> increments;
   std::vector<double> intermediate_position = start_position;
 
+  std::vector<double> increments_hands;
+  std::vector<double> intermediate_hand_position = start_hand_position;
+
+
   for (int i = 0 ; i < start_position.size() ; i++) {
     increments.push_back((goal_position[i] - start_position[i]) / (double)steps);
+  }
+
+  for (int i = 0 ; i < start_hand_position.size() ; i++) {
+    increments_hands.push_back((goal_hand_position[i] - start_hand_position[i]) / (double)steps);
   }
 
   // ROS_INFO("We got this many increments [%d]" , increments.size());
@@ -411,11 +472,12 @@ void MyPlugin::playcall_back( std::vector<double > start_position ,  std::vector
   for (int i = 0 ; i < steps + 1 ; i++) {
     for (int j = 0 ; j < goal_position.size() ; j++)
       intermediate_position[j] = increments[j] + intermediate_position[j];
-
+    for (int j = 0 ; j < goal_hand_position.size() ; j++)
+      intermediate_hand_position[j] = increments_hands[j] + intermediate_hand_position[j];
 
     delay(10);
 
-    updateTargetSlider(intermediate_position);
+    updateTargetSlider(intermediate_position , intermediate_hand_position);
   }
 
 }
@@ -430,9 +492,10 @@ std::vector<std::vector<double> > MyPlugin::generateActuatorDataHelper() {
 
   while ( currentidx < ui_.actionList->count()) {
 
+
+    //For all the major joints
     std::vector<double> goal_position = m_Actions.at(currentidx);
     double time = m_ActionsTimes.at(currentidx);
-
 
     std::vector<double> start_position;
 
@@ -447,7 +510,6 @@ std::vector<std::vector<double> > MyPlugin::generateActuatorDataHelper() {
 
     steps = floor(time * 1000 / 10);
 
-
     std::vector<double> increments;
 
     for (int i = 0 ; i < start_position.size() ; i++) {
@@ -455,10 +517,37 @@ std::vector<std::vector<double> > MyPlugin::generateActuatorDataHelper() {
     }
 
 
+
+    //For all the hand joints
+    std::vector<double> start_hand_position;
+    std::vector<double> goal_hand_position = m_ActionsHands.at(currentidx);
+
+    if (currentidx >  0) {
+      start_hand_position = m_ActionsHands.at(currentidx - 1);
+    }
+    else {
+      while (start_hand_position.size() < goal_hand_position.size())
+        start_hand_position.push_back(0.0);
+    }
+    std::vector<double> increments_hands;
+
+
+    for (int i = 0 ; i < start_hand_position.size() ; i++) {
+      increments_hands.push_back((goal_hand_position[i] - start_hand_position[i]) / (double)steps);
+    }
+
+
+
+
+
+    // saving data
     for (int i = 1 ; i < steps + 1 ; i++) {
       std::vector<double> temp_res;
       for (int j = 0 ; j < goal_position.size() ; j++)
         temp_res.push_back(increments[j] * (double)i + start_position[j]) ;
+
+      for (int j = 0 ; j < goal_hand_position.size() ; j++)
+        temp_res.push_back(increments_hands[j] * (double)i + start_hand_position[j]) ;
 
       res.push_back(temp_res);
     }
@@ -469,6 +558,27 @@ std::vector<std::vector<double> > MyPlugin::generateActuatorDataHelper() {
   return res;
 
 }
+
+
+std::vector<double> MyPlugin::getHandTargetPositions() {
+
+  std::vector<double> temp;
+  for (int i = 0; i < 5; i++) {
+    temp.push_back((double)HandPositionSliders[0][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i]) ;
+  }
+
+
+  for (int i = 0; i < 5; i++) {
+    temp.push_back((double)HandPositionSliders[1][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i]) ;
+  }
+
+  return temp;
+}
+
+
+
+
+
 
 } // namespace
 
