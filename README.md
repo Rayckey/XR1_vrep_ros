@@ -4,23 +4,17 @@
 
 ### Compiling
 
-0. Make sure V-REP and v_repExtRosInterface(https://github.com/Rayckey/v_repExtRosInterface.git) are installed.
-1. Download, and name the package vrep_test
+0. Make sure you have ROS installed and configured
+1. Git the package into your workspace src/ folder vrep_test
 ```
 $ git clone https://github.com/Rayckey/XR1_vrep_ros.git vrep_test
 ```
-2. Return to work space and build using catkin build (or catkin_make)
+2. Return to root if work space folder and build using catkin build (or catkin_make)
 ```
 $ catkin build
+$ source devel/setup.bash 
 ```
-3. Launch the plugin
-```
-$ rqt
-```
-4. and find XR1_VREP in plugins or just
-```
-$ rqt --standalone vrep_test
-```
+
 
 
 ### Running
