@@ -415,6 +415,7 @@ void MyPlugin::clearAction()
 {
   m_Actions.clear();
   m_ActionsTimes.clear();
+  m_ActionsHands.clear();
   int nRow = ui_.actionList->count();
   for (int i = nRow ; --i >= 0;)
   {
