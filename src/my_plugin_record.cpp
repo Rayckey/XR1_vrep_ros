@@ -101,7 +101,7 @@ void MyPlugin::onDance_ButtonClicked() {
   else Path_Ex_Timer->stop();
 
   Path_idx = 0;
-  Path_Ex_Timer->start(100);
+  Path_Ex_Timer->start(10);
 }
 
 
@@ -110,7 +110,7 @@ void MyPlugin::read_saved_path() {
   while (m_cmdValue.size() > 0) m_cmdValue.pop_back();
 
   ROS_INFO("Reading Infos");
-  QFile file("/home/rocky/CollectedData/path.txt");
+  QFile file("/home/rocky/catkin_ws/src/vrep_test/gear_test.txt");
   if (file.open(QFile::ReadOnly | QFile::Text))
   {
     while (!file.atEnd()) {
@@ -139,13 +139,12 @@ void MyPlugin::Path_Ex_Fun() {
 
   std::vector<double> targetPosition;
 
-  for (int i = 0 ; i < 4 ; i++ )
+
+
+  while (targetPosition.size() < 14) targetPosition.push_back(0.0);
+
+  for (int i = 0 ; i < 7 ; i++ )
     targetPosition.push_back(temp_angles[i]);
-
-  while (targetPosition.size() < 21) targetPosition.push_back(0.0);
-
-  targetPosition[7] = temp_angles[4];
-  targetPosition[14] = temp_angles[6];
 
   JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
 
