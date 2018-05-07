@@ -20,7 +20,6 @@ $ source devel/setup.bash
 ### Running
 
 ## Joint Control
-0. Launch roscore
 1. Launch rqt and V-REP by going into the source folder and excecute script
 ```
 $ cd /PATH/TO/VREP_TEST/
