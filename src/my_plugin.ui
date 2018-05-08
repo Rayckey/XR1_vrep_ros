@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1019</width>
-    <height>601</height>
+    <width>1013</width>
+    <height>578</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -272,19 +272,6 @@
    </property>
    <property name="text">
     <string>Save Current Data</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="Dance_Button">
-   <property name="geometry">
-    <rect>
-     <x>400</x>
-     <y>640</y>
-     <width>181</width>
-     <height>121</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Operation Break Dance</string>
    </property>
   </widget>
   <widget class="QTabWidget" name="tabWidget">
@@ -2103,8 +2090,8 @@
   <widget class="QListWidget" name="actionList">
    <property name="geometry">
     <rect>
-     <x>440</x>
-     <y>400</y>
+     <x>400</x>
+     <y>390</y>
      <width>281</width>
      <height>171</height>
     </rect>
@@ -2113,9 +2100,9 @@
   <widget class="QWidget" name="gridLayoutWidget_8">
    <property name="geometry">
     <rect>
-     <x>740</x>
-     <y>400</y>
-     <width>243</width>
+     <x>690</x>
+     <y>390</y>
+     <width>281</width>
      <height>161</height>
     </rect>
    </property>
@@ -2180,6 +2167,13 @@
      <widget class="QLineEdit" name="lineEdit">
       <property name="text">
        <string>1.0</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QPushButton" name="Dance_Button">
+      <property name="text">
+       <string>Play Generated Data</string>
       </property>
      </widget>
     </item>

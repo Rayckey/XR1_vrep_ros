@@ -95,13 +95,13 @@ void MyPlugin::onDance_ButtonClicked() {
   ROS_INFO("Size of the data is [%d]" , (int)m_cmdValue.size());
   if (!Path_Ex_Timer) {
     Path_Ex_Timer = new QTimer(this);
-
     connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
   }
   else Path_Ex_Timer->stop();
 
   Path_idx = 0;
   Path_Ex_Timer->start(10);
+
 }
 
 
@@ -110,23 +110,36 @@ void MyPlugin::read_saved_path() {
   while (m_cmdValue.size() > 0) m_cmdValue.pop_back();
 
   ROS_INFO("Reading Infos");
-  QFile file("/home/rocky/catkin_ws/src/vrep_test/gear_test.txt");
-  if (file.open(QFile::ReadOnly | QFile::Text))
+
+
+  QFileDialog dialog(0, tr("Read Action"), QDir::currentPath());
+  dialog.setFileMode(QFileDialog::ExistingFile);
+  dialog.setNameFilter(tr("Data(*.data)"));
+  if (dialog.exec() == QDialog::Accepted)
   {
-    while (!file.atEnd()) {
-      QByteArray arr = file.readLine();
-      arr.replace('\n', ' ');
-      QList<QByteArray> arrList = arr.split(',');
-      if (arrList.size() < 7)
+    QString path = dialog.selectedFiles().first();
+    if (path.size() > 0)
+    {
+      QFile file(path);
+      if (file.open(QFile::ReadOnly | QFile::Text))
       {
-        ROS_INFO("Data Errors");
-        continue;
+        clearAction();
+        while (!file.atEnd()) {
+          QByteArray arr = file.readLine();
+          arr.replace('\n', ' ');
+          QList<QByteArray> arrList = arr.split(',');
+          if (arrList.size() < 7)
+          {
+            ROS_INFO("Data Errors");
+            continue;
+          }
+          std::vector<double> cmdValue;
+          foreach (QByteArray tmp, arrList) {
+            cmdValue.push_back(tmp.toDouble());
+          }
+          m_cmdValue.push_back(cmdValue);
+        }
       }
-      std::vector<double> cmdValue;
-      foreach (QByteArray tmp, arrList) {
-        cmdValue.push_back(tmp.toDouble());
-      }
-      m_cmdValue.push_back(cmdValue);
     }
   }
 }
@@ -134,21 +147,30 @@ void MyPlugin::read_saved_path() {
 
 void MyPlugin::Path_Ex_Fun() {
 
+  playing_switch = true;
+
   ROS_INFO("Entered Step [%d]" , Path_idx);
   std::vector<double>  temp_angles = m_cmdValue[Path_idx];
 
   std::vector<double> targetPosition;
 
-
-
-  while (targetPosition.size() < 14) targetPosition.push_back(0.0);
-
-  for (int i = 0 ; i < 7 ; i++ )
+  for (int i = 0 ; i < 21 ; i++ )
     targetPosition.push_back(temp_angles[i]);
 
-  JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
+  std::vector<double> handtargetPosition;
+
+  for (int i = 21 ; i < temp_angles.size() ; i++)
+    handtargetPosition.push_back(temp_angles[i]);
+
+  updateTargetSlider(targetPosition, handtargetPosition);
+
+  // JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
 
   if (Path_idx < m_cmdValue.size() - 1) Path_idx++;
+  else {
+    playing_switch = false;
+    Path_Ex_Timer->stop();
+  }
 }
 
 void MyPlugin::addAction(std::vector<double> &position, double time, QString actionName)
@@ -391,15 +413,21 @@ void MyPlugin::generateActuatorData()
       QString path = dialog.selectedFiles().first();
       if (path.size() > 0)
       {
+
+        if (!path.endsWith(".data"))
+        {
+          path += ".data";
+        }
         QFile file(path);
         if (file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
         {
           QTextStream out(&file);
 
           for (int i = 0 ; i < gen_data.size() ; i++) {
-            for (int j = 0 ; j < gen_data[0].size() ; j++) {
-              out << gen_data[i][j];
+            for (int j = 0 ; j < gen_data[0].size() - 1; j++) {
+              out << gen_data[i][j] << ",";
             }
+            out << gen_data[i][gen_data[0].size() - 1];
             out <<  endl;
           }
         }
