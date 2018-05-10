@@ -58,7 +58,6 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   // Reset the joint limits;
   setup_main_joint_limit();
   setup_arm_joint_limit();
-  setup_arm_joint_limit();
   setup_hand_joint_limit();
   // setup_hand_joint_limit();
 

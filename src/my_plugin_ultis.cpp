@@ -64,6 +64,27 @@ void MyPlugin::setup_arm_joint_limit() {
     joint_lower_limit.push_back(-0.88);
     joint_upper_limit.push_back( 0.754);
 
+    joint_lower_limit.push_back(-2.26);
+    joint_upper_limit.push_back( 2.26);
+
+    joint_lower_limit.push_back(-1.88);
+    joint_upper_limit.push_back(0.188);
+
+    joint_lower_limit.push_back(-3.14);
+    joint_upper_limit.push_back( 3.14);
+
+    joint_lower_limit.push_back(-1.57);
+    joint_upper_limit.push_back( 0.1);
+
+    joint_lower_limit.push_back(-3.14);
+    joint_upper_limit.push_back( 3.14);
+ 
+    joint_lower_limit.push_back(-1.13);
+    joint_upper_limit.push_back(1.07);
+
+    joint_lower_limit.push_back(-0.88);
+    joint_upper_limit.push_back( 0.754);
+
 }
 
 void MyPlugin::setup_hand_joint_limit() {

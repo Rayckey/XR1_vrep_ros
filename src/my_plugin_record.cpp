@@ -23,6 +23,7 @@ void MyPlugin::onBtnAddClicked()
 {
   addAction(currentPosition, ui_.lineEdit->text().toDouble(), tr("newAction%1").arg(ui_.actionList->count()));
   addHandAction(getHandTargetPositions());
+  addOmniAction(getOmniAction());
 }
 
 void MyPlugin::onBtnRemoveClicked()
@@ -70,6 +71,7 @@ void MyPlugin::onSave_CurrentClicked() {
 
       for ( int j = 0 ; j < GeneratedConfiguration[i].size() ; j++) out << GeneratedConfiguration[i][j] << " " ;
       for ( int j = 0 ; j < CurrentData[i].size() ; j++) out << CurrentData[i][j] << " " ;
+
 
       out << endl;
     }
@@ -159,7 +161,7 @@ void MyPlugin::Path_Ex_Fun() {
 
   std::vector<double> handtargetPosition;
 
-  for (int i = 21 ; i < temp_angles.size() ; i++)
+  for (int i = 21 ; i < temp_angles.size() - 3 ; i++)
     handtargetPosition.push_back(temp_angles[i]);
 
   updateTargetSlider(targetPosition, handtargetPosition);
@@ -199,6 +201,7 @@ void MyPlugin::removeAction(int nActionIdx)
     m_Actions.remove(nActionIdx);
     m_ActionsTimes.remove(nActionIdx);
     m_ActionsHands.remove(nActionIdx);
+    m_ActionsOmni.remove(nActionIdx);
   }
 }
 
@@ -209,6 +212,7 @@ void MyPlugin::modifyAction()
     m_Actions[ui_.actionList->currentRow()] = currentPosition;
     m_ActionsTimes[ui_.actionList->currentRow()] = ui_.lineEdit->text().toDouble();
     m_ActionsHands[ui_.actionList->currentRow()] = getHandTargetPositions();
+    m_ActionsOmni[ui_.actionList->currentRow()] = getOmniAction();
   }
 }
 
@@ -271,6 +275,12 @@ void MyPlugin::selectActionChanged(int nActionIdx)
     double time = m_ActionsTimes.at(nActionIdx);
     ui_.lineEdit->setText(tr("%1").arg(time));
 
+
+    std::vector<double> speedo = m_ActionsOmni.at(nActionIdx);
+    ui_.lineEdit_X->setText(tr("%1").arg(speedo[0]));
+    ui_.lineEdit_Y->setText(tr("%1").arg(speedo[1]));
+    ui_.lineEdit_Z->setText(tr("%1").arg(speedo[2]));
+
     updateTargetSlider(position , hand_position);
     //todo
   }
@@ -302,6 +312,7 @@ void MyPlugin::readAction()
             {
               while (!reader.atEnd())
               {
+                //Read em body
                 reader.readNextStartElement();
                 QString actionName = reader.name().toString();
                 reader.readNextStartElement();
@@ -319,6 +330,7 @@ void MyPlugin::readAction()
                   addAction(position, time, actionName);
                 }
 
+                // Read em hands
                 reader.readNextStartElement();
                 nCount = reader.readElementText().toUInt();
                 if (nCount > 0)
@@ -331,6 +343,22 @@ void MyPlugin::readAction()
                   }
                   addHandAction(position);
                 }
+
+
+                // Read em omniwheels
+                reader.readNextStartElement();
+                nCount = reader.readElementText().toUInt();
+                if (nCount > 0)
+                {
+                  std::vector<double> velocity;
+                  for (int i = 0; i < nCount; ++i)
+                  {
+                    reader.readNextStartElement();
+                    velocity.push_back(reader.readElementText().toDouble());
+                  }
+                  addOmniAction(velocity);
+                }
+
 
                 reader.readNextStartElement();
               }
@@ -375,18 +403,32 @@ void MyPlugin::saveAction()
         {
           writer.writeStartElement(ui_.actionList->item(i)->text());
           writer.writeTextElement(tr("Time"), tr("%1").arg(m_ActionsTimes.at(i)));
+
+          //Body Action
           writer.writeTextElement(tr("Count"), tr("%1").arg(m_Actions.at(i).size()));
           for (int nPos = 0; nPos < m_Actions.at(i).size(); ++nPos)
           {
             // ROS_INFO("Writing row [%d] [%d]" , i , nPos);
             writer.writeTextElement(tr("Pose%1").arg(nPos), tr("%1").arg(m_Actions.at(i)[nPos]));
           }
+
+          //Hands Action
           writer.writeTextElement(tr("Count"), tr("%1").arg(m_ActionsHands.at(i).size()));
           for (int nPos = 0; nPos < m_ActionsHands.at(i).size(); ++nPos)
           {
             // ROS_INFO("Writing row [%d] [%d]" , i , nPos);
             writer.writeTextElement(tr("HandPose%1").arg(nPos), tr("%1").arg(m_ActionsHands.at(i)[nPos]));
           }
+
+
+          writer.writeTextElement(tr("Count"), tr("%1").arg(m_ActionsOmni.at(i).size()));
+          for (int nPos = 0; nPos < m_ActionsOmni.at(i).size(); ++nPos)
+          {
+            // ROS_INFO("Writing row [%d] [%d]" , i , nPos);
+            writer.writeTextElement(tr("OmniVel%1").arg(nPos), tr("%1").arg(m_ActionsOmni.at(i)[nPos]));
+          }
+
+
           writer.writeEndElement();
         }
         writer.writeEndElement();
@@ -444,6 +486,7 @@ void MyPlugin::clearAction()
   m_Actions.clear();
   m_ActionsTimes.clear();
   m_ActionsHands.clear();
+  m_ActionsOmni.clear();
   int nRow = ui_.actionList->count();
   ROS_INFO("clear Count [%d]" , nRow);
   ui_.actionList->clear();
@@ -568,6 +611,24 @@ std::vector<std::vector<double> > MyPlugin::generateActuatorDataHelper() {
 
 
 
+    //For the Omni wheels
+    std::vector<double> start_vel;
+    std::vector<double> goal_vel = m_ActionsOmni.at(currentidx);
+
+    if (currentidx >  0) {
+      start_vel = m_ActionsOmni.at(currentidx - 1);
+    }
+    else {
+      while (start_vel.size() < goal_vel.size())
+        start_vel.push_back(0.0);
+    }
+    std::vector<double> increments_vel;
+
+
+    for (int i = 0 ; i < start_vel.size() ; i++) {
+      increments_vel.push_back((goal_vel[i] - start_vel[i]) / (double)steps);
+    }
+
 
 
     // saving data
@@ -578,6 +639,9 @@ std::vector<std::vector<double> > MyPlugin::generateActuatorDataHelper() {
 
       for (int j = 0 ; j < goal_hand_position.size() ; j++)
         temp_res.push_back(increments_hands[j] * (double)i + start_hand_position[j]) ;
+
+      for (int j = 0 ; j < goal_vel.size() ; j++)
+        temp_res.push_back(increments_vel[j] * (double)i + start_vel[j]) ;
 
       res.push_back(temp_res);
     }
@@ -606,9 +670,19 @@ std::vector<double> MyPlugin::getHandTargetPositions() {
 }
 
 
+std::vector<double> MyPlugin::getOmniAction() {
+  std::vector<double> res;
+  res.push_back(ui_.lineEdit_X->text().toDouble());
+  res.push_back(ui_.lineEdit_Y->text().toDouble());
+  res.push_back(ui_.lineEdit_Z->text().toDouble());
+
+  return res;
+}
 
 
-
+void MyPlugin::addOmniAction(std::vector<double> OmniAction) {
+  m_ActionsOmni.push_back(OmniAction);
+}
 
 } // namespace
 

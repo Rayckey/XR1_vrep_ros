@@ -190,12 +190,16 @@ private:
   QVector<std::vector<double> > m_Actions;
   QVector<double> m_ActionsTimes;
   QVector<std::vector<double> > m_ActionsHands;
+  QVector<std::vector<double> > m_ActionsOmni;
+
 
 
   QTimer * playback_timer;
 
   std::vector<std::vector<double> >  generateActuatorDataHelper();
   std::vector<double> getHandTargetPositions();
+  std::vector<double> getOmniAction();
+  void addOmniAction(std::vector<double> OmniAction);
 
 private slots:
   void onStartButtonClicked();

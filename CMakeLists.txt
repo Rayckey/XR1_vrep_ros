@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vrep_test)
 
+#add_compile_options(IMU_ENABLE)
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
@@ -13,6 +15,11 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
   tf2_ros
 )
+
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sdk/include)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sdk/include/QtCore)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sdk/include/QtNetWork)
+#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sdk/include/QtSerialPort)
 
 if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
   find_package(Qt5Widgets REQUIRED)
@@ -31,6 +38,7 @@ endif()
  )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Eigen3)
+
 
 add_service_files(DIRECTORY srv 
 	FILES InertiaPara.srv JointCurrent.srv)
@@ -66,6 +74,10 @@ set(vrep_test_UIS
   src/my_plugin.ui
 )
 
+#set(motorA_LIB
+  #sdk/lib/linux_x86_64
+#)
+
 if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
   qt5_wrap_cpp(vrep_test_MOCS ${vrep_test_HDRS})
   qt5_wrap_ui(vrep_test_UIS_H ${vrep_test_UIS})
@@ -88,8 +100,10 @@ include_directories(
     ${vrep_test_SRCS}
     ${vrep_test_MOCS}
     ${vrep_test_UIS_H}
-
 )
+
+
+
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
