@@ -105,9 +105,11 @@ protected slots:
   virtual void onSteeringValueChanged(int);
   virtual void onInertiaParaClicked();
   virtual void onZero();
-  virtual void onGenerate_ConfigurationClicked();
-  virtual void onSave_CurrentClicked();
-  virtual void onCollect_CurrentClicked();
+  // virtual void onGenerate_ConfigurationClicked();
+  // virtual void onSave_CurrentClicked();
+  // virtual void onCollect_CurrentClicked();
+
+
 //add by lzj
   void onBtnAddClicked();
   void onBtnRemoveClicked();
@@ -128,8 +130,8 @@ private:
 
 protected:
 
-  void playcall_back( std::vector<double > start_position ,  std::vector<double> goal_position, 
-    std::vector<double > start_hand_position ,  std::vector<double> goal_hand_position ,  double time);
+  // void playcall_back( std::vector<double > start_position ,  std::vector<double> goal_position, 
+  //   std::vector<double > start_hand_position ,  std::vector<double> goal_hand_position ,  double time);
 
 private:
   Ui::MyPluginWidget ui_;
@@ -165,7 +167,7 @@ private:
   std::vector<std::vector<double> > GeneratedConfiguration;
   std::vector<std::vector<double> > CurrentData;
 
-  std::vector<std::vector<double> > m_cmdValue;
+  // std::vector<std::vector<double> > m_cmdValue;
 
 
   void setup_main_joint_limit();
@@ -192,11 +194,13 @@ private:
   QVector<std::vector<double> > m_ActionsHands;
   QVector<std::vector<double> > m_ActionsOmni;
 
+  std::vector<double> OmniPositions;
+
 
 
   QTimer * playback_timer;
 
-  std::vector<std::vector<double> >  generateActuatorDataHelper();
+  void  generateActuatorDataHelper();
   std::vector<double> getHandTargetPositions();
   std::vector<double> getOmniAction();
   void addOmniAction(std::vector<double> OmniAction);
@@ -211,6 +215,8 @@ private slots:
   void onDance_ButtonClicked();
 
   void updateTargetSlider(std::vector<double> v , std::vector<double> u);
+
+
 
 }; //class
 } // namespace

@@ -21,6 +21,7 @@ MyPlugin::MyPlugin()
 void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 {
 
+  ROS_INFO("Loading vrep_test plugin !");
   Path_idx = 0;
 
   // access standalone command line arguments
@@ -127,9 +128,6 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
   //Steering
   TwistPublisher = getNodeHandle().advertise<geometry_msgs::Twist>("/XR1/Base/cmd", 10);
-  connect((ui_.Twist_Z), SIGNAL(valueChanged(int)), this, SLOT(onSteeringValueChanged(int)));
-  connect((ui_.Twist_Y), SIGNAL(valueChanged(int)), this, SLOT(onSteeringValueChanged(int)));
-  connect((ui_.Twist_X), SIGNAL(valueChanged(int)), this, SLOT(onSteeringValueChanged(int)));
 
   //GetTF
   // ptr_XR1 = new XR1();
@@ -148,9 +146,8 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
   //TODO Calculate torques and stuff
 
-  connect(ui_.Save_Current, SIGNAL(clicked()) , this , SLOT(onSave_CurrentClicked()));
-  connect(ui_.Collect_Current, SIGNAL(clicked()) , this , SLOT(onCollect_CurrentClicked()));
-  connect(ui_.Generate_Configuration, SIGNAL(clicked()) , this , SLOT(onGenerate_ConfigurationClicked()));
+
+  // connect(ui_.Generate_Configuration, SIGNAL(clicked()) , this , SLOT(onGenerate_ConfigurationClicked()));
 
 
   //TODO Gravity Compensation
@@ -168,6 +165,14 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect(ui_.play, &QPushButton::clicked, this, &MyPlugin::play);
   connect(ui_.generate, &QPushButton::clicked, this, &MyPlugin::generateActuatorData);
   connect(ui_.addAction, &QPushButton::clicked, this, &MyPlugin::onBtnAddClicked);
+
+
+    Path_Ex_Timer = new QTimer(this);
+    connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
+
+
+  OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);
+
 
 }
 
@@ -326,12 +331,9 @@ void MyPlugin::onZero() {
     HandPositionSliders[1][i]->setValue(floor((0.0 - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100));
   }
 
-
-
-
-  ui_.Twist_X->setValue(50);
-  ui_.Twist_Y->setValue(50);
-  ui_.Twist_Z->setValue(50);
+  // ui_.Twist_X->setValue(50);
+  // ui_.Twist_Y->setValue(50);
+  // ui_.Twist_Z->setValue(50);
 
   targetPositionSpinBox[0]->setValue(0.2);
   targetPositionSpinBox[1]->setValue(0.0);
@@ -602,15 +604,15 @@ void MyPlugin::onJointRotationVisualizationFinish() {
 }
 
 
-void MyPlugin::onSteeringValueChanged(int) {
-  // Send out a twist msg
-  geometry_msgs::Twist msg;
-  msg.linear.x = ((double)ui_.Twist_X->value() - 50.) * 0.02;
-  msg.linear.y = ((double)ui_.Twist_Y->value() - 50.) * 0.02;
-  msg.angular.z = ((double)ui_.Twist_Z->value() - 50.) * 0.01;
+// void MyPlugin::onSteeringValueChanged(int) {
+//   // Send out a twist msg
+//   geometry_msgs::Twist msg;
+//   msg.linear.x = ((double)ui_.Twist_X->value() - 50.) * 0.02;
+//   msg.linear.y = ((double)ui_.Twist_Y->value() - 50.) * 0.02;
+//   msg.angular.z = ((double)ui_.Twist_Z->value() - 50.) * 0.01;
 
-  TwistPublisher.publish(msg);
-}
+//   TwistPublisher.publish(msg);
+// }
 
 void MyPlugin::onInertiaParaClicked() {
   //Example for ros service communication
@@ -619,96 +621,96 @@ void MyPlugin::onInertiaParaClicked() {
 }
 
 
-void MyPlugin::onGenerate_ConfigurationClicked() {
-  // static const double ranges[7] = {2 * PI , PI , 2 * PI , PI / 2.0 - 0.1 , 2.0 * PI , PI / 2.0 , PI / 2.0};
+// void MyPlugin::onGenerate_ConfigurationClicked() {
+//   // static const double ranges[7] = {2 * PI , PI , 2 * PI , PI / 2.0 - 0.1 , 2.0 * PI , PI / 2.0 , PI / 2.0};
 
-  // static const double lower_bounds[7] = { -PI , 0.0 , -PI , 0.0, -PI , -PI / 4.0 , -PI / 4.0};
+//   // static const double lower_bounds[7] = { -PI , 0.0 , -PI , 0.0, -PI , -PI / 4.0 , -PI / 4.0};
 
-  static const double ranges[7] =     {2 * PI , PI ,  PI      , -PI / 2.0 + 0.1 , 2.0 * PI , PI / 2.0 , PI / 2.0};
+//   static const double ranges[7] =     {2 * PI , PI ,  PI      , -PI / 2.0 + 0.1 , 2.0 * PI , PI / 2.0 , PI / 2.0};
 
-  static const double lower_bounds[7] = { -PI , 0.0 , -PI / 2.0 , 0.0,              -PI ,     -PI / 4.0 , -PI / 4.0};
+//   static const double lower_bounds[7] = { -PI , 0.0 , -PI / 2.0 , 0.0,              -PI ,     -PI / 4.0 , -PI / 4.0};
 
-  ROS_INFO("Generating Configurations");
+//   ROS_INFO("Generating Configurations");
 
-  while (!GeneratedConfiguration.empty()) GeneratedConfiguration.pop_back();
-  while (!CurrentData.empty()) CurrentData.pop_back();
+//   while (!GeneratedConfiguration.empty()) GeneratedConfiguration.pop_back();
+//   while (!CurrentData.empty()) CurrentData.pop_back();
 
-  for (int i = 0 ; i < 100 ; i++) {
-    std::vector<double> temp_angles(7);
-    for (int j = 0 ; j < temp_angles.size(); j++) temp_angles[j] = ((double)rand() / (double)RAND_MAX * ranges[j]) + lower_bounds[j];
-    GeneratedConfiguration.push_back(temp_angles);
-  }
-
-
-  //   for (int i = 0 ; i < 100 ; i++) {
-  //   std::vector<double> temp_angles(7);
-  //   for (int j = 0 ; j < temp_angles.size(); j++) temp_angles[j] = ((double)i * ranges[j] / 100.0) + lower_bounds[j];
-  //   GeneratedConfiguration.push_back(temp_angles);
-  // }
-
-  // int tempie = GeneratedConfiguration.size();
-  // int tempie2 = GeneratedConfiguration[0].size();
-  // ROS_INFO("Generated Configurations , size is [%d] [%d]" , tempie , tempie2);
+//   for (int i = 0 ; i < 100 ; i++) {
+//     std::vector<double> temp_angles(7);
+//     for (int j = 0 ; j < temp_angles.size(); j++) temp_angles[j] = ((double)rand() / (double)RAND_MAX * ranges[j]) + lower_bounds[j];
+//     GeneratedConfiguration.push_back(temp_angles);
+//   }
 
 
-  // //Configuration 1: Excite the Hand link
+//   //   for (int i = 0 ; i < 100 ; i++) {
+//   //   std::vector<double> temp_angles(7);
+//   //   for (int j = 0 ; j < temp_angles.size(); j++) temp_angles[j] = ((double)i * ranges[j] / 100.0) + lower_bounds[j];
+//   //   GeneratedConfiguration.push_back(temp_angles);
+//   // }
 
-  // //MSX
-  // for (int i = 0 ; i < 50 ; i++){
-  //   std::vector<double> temp_angles(7);
-  //   temp_angles[0] = -PI/2;
-  //   temp_angles[1] = 0.0;
-  //   temp_angles[2] = 0.0;
-  //   temp_angles[3] = 0.0;
-  //   temp_angles[4] = 0.0;
-  //   temp_angles[5] = 0.0;
-  //   temp_angles[6] = ((double)rand() / (double)RAND_MAX * ranges[6]) + lower_bounds[6];
-  //   GeneratedConfiguration.push_back(temp_angles);
-  // }
+//   // int tempie = GeneratedConfiguration.size();
+//   // int tempie2 = GeneratedConfiguration[0].size();
+//   // ROS_INFO("Generated Configurations , size is [%d] [%d]" , tempie , tempie2);
 
 
+//   // //Configuration 1: Excite the Hand link
 
-}
+//   // //MSX
+//   // for (int i = 0 ; i < 50 ; i++){
+//   //   std::vector<double> temp_angles(7);
+//   //   temp_angles[0] = -PI/2;
+//   //   temp_angles[1] = 0.0;
+//   //   temp_angles[2] = 0.0;
+//   //   temp_angles[3] = 0.0;
+//   //   temp_angles[4] = 0.0;
+//   //   temp_angles[5] = 0.0;
+//   //   temp_angles[6] = ((double)rand() / (double)RAND_MAX * ranges[6]) + lower_bounds[6];
+//   //   GeneratedConfiguration.push_back(temp_angles);
+//   // }
 
 
 
-
-void MyPlugin::onCollect_CurrentClicked() {
-
-  ui_.Save_Current->setEnabled(false);
-  ui_.Collect_Current->setText("Waiting");
-
-  if (GeneratedConfiguration.empty()) {
-
-  }
-  else {
-    for (int i = 0 ; i < targetPositionSliders.size(); i++) targetPositionSliders[i]->setEnabled(false);
-
-    for (int i = 0 ; i < GeneratedConfiguration.size() ; i++) {
-      ROS_INFO("New Position");
-      std::vector<double> targetPosition(21);
-
-      for (int j = 0; j < 7; j++) {
-        targetPosition[j] = 0.0;
-        targetPosition[j + 7] = GeneratedConfiguration[i][j];
-        targetPosition[j + 14] = 0.0;
-
-      }
-      ROS_INFO("Publishing New Position");
-      JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
+// }
 
 
-      delay(2000);
 
-      CurrentData.push_back(processCurrents());
 
-    }
-  }
+// void MyPlugin::onCollect_CurrentClicked() {
 
-  ui_.Generate_Configuration->setText("Finished Collection");
+//   ui_.Save_Current->setEnabled(false);
+//   ui_.Collect_Current->setText("Waiting");
 
-  ui_.Save_Current->setEnabled(true);
-}
+//   if (GeneratedConfiguration.empty()) {
+
+//   }
+//   else {
+//     for (int i = 0 ; i < targetPositionSliders.size(); i++) targetPositionSliders[i]->setEnabled(false);
+
+//     for (int i = 0 ; i < GeneratedConfiguration.size() ; i++) {
+//       ROS_INFO("New Position");
+//       std::vector<double> targetPosition(21);
+
+//       for (int j = 0; j < 7; j++) {
+//         targetPosition[j] = 0.0;
+//         targetPosition[j + 7] = GeneratedConfiguration[i][j];
+//         targetPosition[j + 14] = 0.0;
+
+//       }
+//       ROS_INFO("Publishing New Position");
+//       JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
+
+
+//       delay(2000);
+
+//       CurrentData.push_back(processCurrents());
+
+//     }
+//   }
+
+//   ui_.Generate_Configuration->setText("Finished Collection");
+
+//   ui_.Save_Current->setEnabled(true);
+// }
 
 
 } // namespace

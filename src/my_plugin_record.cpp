@@ -59,27 +59,27 @@ std::vector<double> MyPlugin::processCurrents() {
   return res;
 }
 
-void MyPlugin::onSave_CurrentClicked() {
+// void MyPlugin::onSave_CurrentClicked() {
 
-  QString filename = "/home/rocky/CollectedData/testrun.txt";
-  QFile fileout(filename);
-  QTextStream out(&fileout);
+//   QString filename = "/home/rocky/CollectedData/testrun.txt";
+//   QFile fileout(filename);
+//   QTextStream out(&fileout);
 
-  if (!fileout.open(QIODevice::ReadWrite)) ROS_INFO("Failed to write , plzz check privilege");
-  else {
-    for (int i = 0 ; i < GeneratedConfiguration.size() ; i++) {
+//   if (!fileout.open(QIODevice::ReadWrite)) ROS_INFO("Failed to write , plzz check privilege");
+//   else {
+//     for (int i = 0 ; i < GeneratedConfiguration.size() ; i++) {
 
-      for ( int j = 0 ; j < GeneratedConfiguration[i].size() ; j++) out << GeneratedConfiguration[i][j] << " " ;
-      for ( int j = 0 ; j < CurrentData[i].size() ; j++) out << CurrentData[i][j] << " " ;
+//       for ( int j = 0 ; j < GeneratedConfiguration[i].size() ; j++) out << GeneratedConfiguration[i][j] << " " ;
+//       for ( int j = 0 ; j < CurrentData[i].size() ; j++) out << CurrentData[i][j] << " " ;
 
 
-      out << endl;
-    }
+//       out << endl;
+//     }
 
-  }
+//   }
 
-  fileout.close();
-}
+//   fileout.close();
+// }
 
 
 void MyPlugin::delay(int delay_time) {
@@ -94,12 +94,13 @@ void MyPlugin::onDance_ButtonClicked() {
 
   read_saved_path();
   ROS_INFO("Data Read");
-  ROS_INFO("Size of the data is [%d]" , (int)m_cmdValue.size());
-  if (!Path_Ex_Timer) {
-    Path_Ex_Timer = new QTimer(this);
-    connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
-  }
-  else Path_Ex_Timer->stop();
+  ROS_INFO("Size of the data is [%d]" , (int)GeneratedConfiguration.size());
+
+  Path_Ex_Timer->stop();
+
+  OmniPositions[0] = 0.0;
+  OmniPositions[1] = 0.0;
+  OmniPositions[2] = 0.0;
 
   Path_idx = 0;
   Path_Ex_Timer->start(10);
@@ -109,7 +110,7 @@ void MyPlugin::onDance_ButtonClicked() {
 
 void MyPlugin::read_saved_path() {
 
-  while (m_cmdValue.size() > 0) m_cmdValue.pop_back();
+  while (GeneratedConfiguration.size() > 0) GeneratedConfiguration.pop_back();
 
   ROS_INFO("Reading Infos");
 
@@ -139,7 +140,7 @@ void MyPlugin::read_saved_path() {
           foreach (QByteArray tmp, arrList) {
             cmdValue.push_back(tmp.toDouble());
           }
-          m_cmdValue.push_back(cmdValue);
+          GeneratedConfiguration.push_back(cmdValue);
         }
       }
     }
@@ -152,7 +153,7 @@ void MyPlugin::Path_Ex_Fun() {
   playing_switch = true;
 
   ROS_INFO("Entered Step [%d]" , Path_idx);
-  std::vector<double>  temp_angles = m_cmdValue[Path_idx];
+  std::vector<double>  temp_angles = GeneratedConfiguration[Path_idx];
 
   std::vector<double> targetPosition;
 
@@ -168,7 +169,19 @@ void MyPlugin::Path_Ex_Fun() {
 
   // JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
 
-  if (Path_idx < m_cmdValue.size() - 1) Path_idx++;
+  OmniPositions[0] += temp_angles[temp_angles.size() - 3] * 0.01;
+  OmniPositions[1] += temp_angles[temp_angles.size() - 2] * 0.01;
+  OmniPositions[2] += temp_angles[temp_angles.size() - 1] * 0.01;
+
+   geometry_msgs::Twist msg;
+
+  msg.linear.x = OmniPositions[0];
+  msg.linear.y = OmniPositions[1];
+  msg.angular.z = OmniPositions[2];
+
+  TwistPublisher.publish(msg);
+
+  if (Path_idx < GeneratedConfiguration.size() - 1) Path_idx++;
   else {
     playing_switch = false;
     Path_Ex_Timer->stop();
@@ -221,49 +234,66 @@ void MyPlugin::play()
 
   ui_.tabWidget->setCurrentIndex(0);
 
+  generateActuatorDataHelper();
+
   playing_switch = true;
-  if (ui_.actionList->count() > 1 && ui_.actionList->currentRow() != ui_.actionList->count() - 1)
-  {
-    int currentidx;
 
-    // ROS_INFO("current idx is [%d]", currentidx);
 
-    if (ui_.actionList->currentRow() + 1)
-      currentidx = ui_.actionList->currentRow();
-    else currentidx = 0;
 
-    // ROS_INFO("current idx is [%d]", currentidx);
+  Path_Ex_Timer->stop();
 
-    while ( currentidx < ui_.actionList->count()) {
+  Path_idx = 0;
 
-      std::vector<double> goal_position = m_Actions.at(currentidx);
-      std::vector<double> goal_hand_position = m_ActionsHands.at(currentidx);
-      double time = m_ActionsTimes.at(currentidx);
+  OmniPositions[0] = 0.0;
+  OmniPositions[1] = 0.0;
+  OmniPositions[2] = 0.0;
+  Path_Ex_Timer->start(10);
 
-      // ROS_INFO("We got this many joints [%d]", goal_position.size());
 
-      // ROS_INFO("We got this much time [%f]", time);
 
-      std::vector<double> start_position;
-      std::vector<double> start_hand_position;
 
-      if (currentidx >  0) {
-        start_hand_position = m_ActionsHands.at(currentidx - 1);
-        start_position = m_Actions.at(currentidx - 1);
-      }
-      else {
-        while (start_position.size() < goal_position.size())
-          start_position.push_back(0.0);
-        while (start_hand_position.size() < goal_hand_position.size())
-          start_hand_position.push_back(0.0);
-      }
+  // if (ui_.actionList->count() > 1 && ui_.actionList->currentRow() != ui_.actionList->count() - 1)
+  // {
+  //   int currentidx;
 
-      // ROS_INFO("We got this many joints [%d]", start_position.size());
-      playcall_back(start_position, goal_position, start_hand_position, goal_hand_position, time);
-      currentidx++;
-    }
-  }
-  playing_switch = false;
+  //   // // ROS_INFO("current idx is [%d]", currentidx);
+
+  //   // if (ui_.actionList->currentRow() + 1)
+  //   //   currentidx = ui_.actionList->currentRow();
+  //   // else currentidx = 0;
+
+  //   // // ROS_INFO("current idx is [%d]", currentidx);
+
+  //   // while ( currentidx < ui_.actionList->count()) {
+
+  //   //   std::vector<double> goal_position = m_Actions.at(currentidx);
+  //   //   std::vector<double> goal_hand_position = m_ActionsHands.at(currentidx);
+  //   //   double time = m_ActionsTimes.at(currentidx);
+
+  //   //   // ROS_INFO("We got this many joints [%d]", goal_position.size());
+
+  //   //   // ROS_INFO("We got this much time [%f]", time);
+
+  //   //   std::vector<double> start_position;
+  //   //   std::vector<double> start_hand_position;
+
+  //   //   if (currentidx >  0) {
+  //   //     start_hand_position = m_ActionsHands.at(currentidx - 1);
+  //   //     start_position = m_Actions.at(currentidx - 1);
+  //   //   }
+  //   //   else {
+  //   //     while (start_position.size() < goal_position.size())
+  //   //       start_position.push_back(0.0);
+  //   //     while (start_hand_position.size() < goal_hand_position.size())
+  //   //       start_hand_position.push_back(0.0);
+  //   //   }
+
+  //   //   // ROS_INFO("We got this many joints [%d]", start_position.size());
+  //   //   playcall_back(start_position, goal_position, start_hand_position, goal_hand_position, time);
+  //   //   currentidx++;
+  //   // }
+  // }
+  // playing_switch = false;
 }
 
 void MyPlugin::selectActionChanged(int nActionIdx)
@@ -442,9 +472,9 @@ void MyPlugin::saveAction()
 void MyPlugin::generateActuatorData()
 {
 
-  std::vector<std::vector<double> > gen_data = generateActuatorDataHelper() ;
+  generateActuatorDataHelper() ;
 
-  if (gen_data.size()) {
+  if (GeneratedConfiguration.size()) {
     QFileDialog dialog(0, tr("Save Action"), QDir::currentPath());
     dialog.setFileMode(QFileDialog::AnyFile);
     dialog.setAcceptMode(QFileDialog::AcceptSave);
@@ -465,11 +495,11 @@ void MyPlugin::generateActuatorData()
         {
           QTextStream out(&file);
 
-          for (int i = 0 ; i < gen_data.size() ; i++) {
-            for (int j = 0 ; j < gen_data[0].size() - 1; j++) {
-              out << gen_data[i][j] << ",";
+          for (int i = 0 ; i < GeneratedConfiguration.size() ; i++) {
+            for (int j = 0 ; j < GeneratedConfiguration[0].size() - 1; j++) {
+              out << GeneratedConfiguration[i][j] << ",";
             }
-            out << gen_data[i][gen_data[0].size() - 1];
+            out << GeneratedConfiguration[i][GeneratedConfiguration[0].size() - 1];
             out <<  endl;
           }
         }
@@ -517,49 +547,49 @@ void MyPlugin::updateTargetSlider(std::vector<double> v , std::vector<double> u)
   RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(right_hand_temp));
 }
 
-void MyPlugin::playcall_back( std::vector<double > start_position ,  std::vector<double> goal_position ,
-                              std::vector<double > start_hand_position ,  std::vector<double> goal_hand_position , double time) {
+// void MyPlugin::playcall_back( std::vector<double > start_position ,  std::vector<double> goal_position ,
+//                               std::vector<double > start_hand_position ,  std::vector<double> goal_hand_position , double time) {
 
-  int steps;
-  steps = floor(time * 1000 / 10);
+//   int steps;
+//   steps = floor(time * 1000 / 10);
 
-  // ROS_INFO("We got this many steps [%d]" , steps);
+//   // ROS_INFO("We got this many steps [%d]" , steps);
 
-  std::vector<double> increments;
-  std::vector<double> intermediate_position = start_position;
+//   std::vector<double> increments;
+//   std::vector<double> intermediate_position = start_position;
 
-  std::vector<double> increments_hands;
-  std::vector<double> intermediate_hand_position = start_hand_position;
-
-
-  for (int i = 0 ; i < start_position.size() ; i++) {
-    increments.push_back((goal_position[i] - start_position[i]) / (double)steps);
-  }
-
-  for (int i = 0 ; i < start_hand_position.size() ; i++) {
-    increments_hands.push_back((goal_hand_position[i] - start_hand_position[i]) / (double)steps);
-  }
-
-  // ROS_INFO("We got this many increments [%d]" , increments.size());
-
-  for (int i = 0 ; i < steps + 1 ; i++) {
-    for (int j = 0 ; j < goal_position.size() ; j++)
-      intermediate_position[j] = increments[j] + intermediate_position[j];
-    for (int j = 0 ; j < goal_hand_position.size() ; j++)
-      intermediate_hand_position[j] = increments_hands[j] + intermediate_hand_position[j];
-
-    delay(10);
-
-    updateTargetSlider(intermediate_position , intermediate_hand_position);
-  }
-
-}
+//   std::vector<double> increments_hands;
+//   std::vector<double> intermediate_hand_position = start_hand_position;
 
 
+//   for (int i = 0 ; i < start_position.size() ; i++) {
+//     increments.push_back((goal_position[i] - start_position[i]) / (double)steps);
+//   }
 
-std::vector<std::vector<double> > MyPlugin::generateActuatorDataHelper() {
+//   for (int i = 0 ; i < start_hand_position.size() ; i++) {
+//     increments_hands.push_back((goal_hand_position[i] - start_hand_position[i]) / (double)steps);
+//   }
 
-  std::vector<std::vector<double> > res;
+//   // ROS_INFO("We got this many increments [%d]" , increments.size());
+
+//   for (int i = 0 ; i < steps + 1 ; i++) {
+//     for (int j = 0 ; j < goal_position.size() ; j++)
+//       intermediate_position[j] = increments[j] + intermediate_position[j];
+//     for (int j = 0 ; j < goal_hand_position.size() ; j++)
+//       intermediate_hand_position[j] = increments_hands[j] + intermediate_hand_position[j];
+
+//     delay(10);
+
+//     updateTargetSlider(intermediate_position , intermediate_hand_position);
+//   }
+
+// }
+
+
+
+void MyPlugin::generateActuatorDataHelper() {
+
+  while (GeneratedConfiguration.size() > 0) GeneratedConfiguration.pop_back();
 
   int currentidx = 0;
 
@@ -643,13 +673,12 @@ std::vector<std::vector<double> > MyPlugin::generateActuatorDataHelper() {
       for (int j = 0 ; j < goal_vel.size() ; j++)
         temp_res.push_back(increments_vel[j] * (double)i + start_vel[j]) ;
 
-      res.push_back(temp_res);
+      GeneratedConfiguration.push_back(temp_res);
     }
 
     currentidx++;
   }
 
-  return res;
 
 }
 
@@ -660,7 +689,6 @@ std::vector<double> MyPlugin::getHandTargetPositions() {
   for (int i = 0; i < 5; i++) {
     temp.push_back((double)HandPositionSliders[0][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i]) ;
   }
-
 
   for (int i = 0; i < 5; i++) {
     temp.push_back((double)HandPositionSliders[1][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i]) ;
