@@ -31,33 +31,33 @@ void MyPlugin::onBtnRemoveClicked()
   removeAction(ui_.actionList->currentRow());
 }
 
-std::vector<double> MyPlugin::processCurrents() {
+// std::vector<double> MyPlugin::processCurrents() {
 
-  std::vector<double> res;
+//   std::vector<double> res;
 
-  for ( int i = 0; i < 10 ; i++) {
+//   for ( int i = 0; i < 10 ; i++) {
 
-    vrep_test::JointCurrent srv;
+//     vrep_test::JointCurrent srv;
 
-    srv.request.NAME = "Left";
+//     srv.request.NAME = "Left";
 
-    if (CurrentClient.call(srv)) {
-      ROS_INFO("Got Service Response from Vrep");
-      res.push_back(srv.response.LSX);
-      res.push_back(srv.response.LSY);
-      res.push_back(srv.response.LEZ);
-      res.push_back(srv.response.LEX);
-      res.push_back(srv.response.LWZ);
-      res.push_back(srv.response.LWY);
-      res.push_back(srv.response.LWX);
-      res.push_back(srv.response.COL);
-    }
+//     if (CurrentClient.call(srv)) {
+//       ROS_INFO("Got Service Response from Vrep");
+//       res.push_back(srv.response.LSX);
+//       res.push_back(srv.response.LSY);
+//       res.push_back(srv.response.LEZ);
+//       res.push_back(srv.response.LEX);
+//       res.push_back(srv.response.LWZ);
+//       res.push_back(srv.response.LWY);
+//       res.push_back(srv.response.LWX);
+//       res.push_back(srv.response.COL);
+//     }
 
-    delay(20);
+//     delay(20);
 
-  }
-  return res;
-}
+//   }
+//   return res;
+// }
 
 // void MyPlugin::onSave_CurrentClicked() {
 

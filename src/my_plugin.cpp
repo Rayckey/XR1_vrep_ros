@@ -614,11 +614,11 @@ void MyPlugin::onJointRotationVisualizationFinish() {
 //   TwistPublisher.publish(msg);
 // }
 
-void MyPlugin::onInertiaParaClicked() {
-  //Example for ros service communication
-  ros::ServiceClient client = getNodeHandle().serviceClient<vrep_test::InertiaPara>("/vrep_ros_interface/InertiaPara_Query");
-  // ptr_XR1->callInertiaPara(client);
-}
+// void MyPlugin::onInertiaParaClicked() {
+//   //Example for ros service communication
+//   ros::ServiceClient client = getNodeHandle().serviceClient<vrep_test::InertiaPara>("/vrep_ros_interface/InertiaPara_Query");
+//   // ptr_XR1->callInertiaPara(client);
+// }
 
 
 // void MyPlugin::onGenerate_ConfigurationClicked() {
