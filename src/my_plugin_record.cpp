@@ -31,33 +31,33 @@ void MyPlugin::onBtnRemoveClicked()
   removeAction(ui_.actionList->currentRow());
 }
 
-std::vector<double> MyPlugin::processCurrents() {
+// std::vector<double> MyPlugin::processCurrents() {
 
-  std::vector<double> res;
+//   std::vector<double> res;
 
-  for ( int i = 0; i < 10 ; i++) {
+//   for ( int i = 0; i < 10 ; i++) {
 
-    vrep_test::JointCurrent srv;
+//     vrep_test::JointCurrent srv;
 
-    srv.request.NAME = "Left";
+//     srv.request.NAME = "Left";
 
-    if (CurrentClient.call(srv)) {
-      ROS_INFO("Got Service Response from Vrep");
-      res.push_back(srv.response.LSX);
-      res.push_back(srv.response.LSY);
-      res.push_back(srv.response.LEZ);
-      res.push_back(srv.response.LEX);
-      res.push_back(srv.response.LWZ);
-      res.push_back(srv.response.LWY);
-      res.push_back(srv.response.LWX);
-      res.push_back(srv.response.COL);
-    }
+//     if (CurrentClient.call(srv)) {
+//       ROS_INFO("Got Service Response from Vrep");
+//       res.push_back(srv.response.LSX);
+//       res.push_back(srv.response.LSY);
+//       res.push_back(srv.response.LEZ);
+//       res.push_back(srv.response.LEX);
+//       res.push_back(srv.response.LWZ);
+//       res.push_back(srv.response.LWY);
+//       res.push_back(srv.response.LWX);
+//       res.push_back(srv.response.COL);
+//     }
 
-    delay(20);
+//     delay(20);
 
-  }
-  return res;
-}
+//   }
+//   return res;
+// }
 
 // void MyPlugin::onSave_CurrentClicked() {
 
@@ -173,13 +173,13 @@ void MyPlugin::Path_Ex_Fun() {
   OmniPositions[1] += temp_angles[temp_angles.size() - 2] * 0.01;
   OmniPositions[2] += temp_angles[temp_angles.size() - 1] * 0.01;
 
-   geometry_msgs::Twist msg;
+  //  geometry_msgs::Twist msg;
 
-  msg.linear.x = OmniPositions[0];
-  msg.linear.y = OmniPositions[1];
-  msg.angular.z = OmniPositions[2];
+  // msg.linear.x = OmniPositions[0];
+  // msg.linear.y = OmniPositions[1];
+  // msg.angular.z = OmniPositions[2];
 
-  TwistPublisher.publish(msg);
+  // TwistPublisher.publish(msg);
 
   if (Path_idx < GeneratedConfiguration.size() - 1) Path_idx++;
   else {

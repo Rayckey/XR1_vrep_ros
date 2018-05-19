@@ -127,7 +127,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
 
   //Steering
-  TwistPublisher = getNodeHandle().advertise<geometry_msgs::Twist>("/XR1/Base/cmd", 10);
+  // TwistPublisher = getNodeHandle().advertise<geometry_msgs::Twist>("/XR1/Base/cmd", 10);
 
   //GetTF
   // ptr_XR1 = new XR1();
@@ -171,7 +171,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
     connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
 
 
-  OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);
+  // OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);
 
 
 }
@@ -614,11 +614,11 @@ void MyPlugin::onJointRotationVisualizationFinish() {
 //   TwistPublisher.publish(msg);
 // }
 
-void MyPlugin::onInertiaParaClicked() {
-  //Example for ros service communication
-  ros::ServiceClient client = getNodeHandle().serviceClient<vrep_test::InertiaPara>("/vrep_ros_interface/InertiaPara_Query");
-  // ptr_XR1->callInertiaPara(client);
-}
+// void MyPlugin::onInertiaParaClicked() {
+//   //Example for ros service communication
+//   ros::ServiceClient client = getNodeHandle().serviceClient<vrep_test::InertiaPara>("/vrep_ros_interface/InertiaPara_Query");
+//   // ptr_XR1->callInertiaPara(client);
+// }
 
 
 // void MyPlugin::onGenerate_ConfigurationClicked() {
