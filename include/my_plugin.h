@@ -71,7 +71,7 @@ public:
   virtual vrep_test::IK_msg ConvertIkMsgs(std::vector<double> IKtargetPosition);
   virtual vrep_test::HandJointAngles ConvertHandJointAngleMsgs(double HandPosition[5]);
 
-  // virtual std::vector<double> processCurrents();
+  virtual std::vector<double> processCurrents();
 
   void just_timer_callback();
   // Comment in to signal that the plugin has a way to configure it
@@ -102,8 +102,8 @@ protected slots:
   virtual void onJointTargetPositionChanged(int i);
   virtual void onJointRotationVisualization();
   virtual void onJointRotationVisualizationFinish();
-  // virtual void onSteeringValueChanged(int);
-  // virtual void onInertiaParaClicked();
+  virtual void onSteeringValueChanged(int);
+  virtual void onInertiaParaClicked();
   virtual void onZero();
   // virtual void onGenerate_ConfigurationClicked();
   // virtual void onSave_CurrentClicked();
