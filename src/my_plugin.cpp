@@ -11,9 +11,10 @@ MyPlugin::MyPlugin()
   , widget_(0)
   , Path_Ex_Timer(NULL)
   , playing_switch(0)
+  , CollectIMUSwitch(0)
 {
   // Constructor is called first before initPlugin function, needless to say.
-
+  ROS_INFO("Loading vrep_test plugin !");
   // give QObjects reasonable names
   setObjectName("MyPlugin");
 }
@@ -151,6 +152,26 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
 
   //TODO Gravity Compensation
+  //
+
+
+  // connect(ui_.Use_Sync , SIGNAL(clicked()) , this , connect(on_Sync_Clicked));
+
+  // SyncPublisher = getNodeHandle().advertise<std_msgs::Bool>("/enableSyncMode", 1);
+
+  // SyncFinishedSubscriber = getNodeHandle().subscribe("/simulationStepDone" , 1 , &MyPlugin::syncFinishedCallback, this);
+
+  // NextStepPublisher  = nh.advertise<std_msgs::Bool>("triggerNextStep", 1);
+
+
+
+
+
+
+
+
+
+
 
   // Emergency Dance
 
@@ -167,11 +188,85 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect(ui_.addAction, &QPushButton::clicked, this, &MyPlugin::onBtnAddClicked);
 
 
-    Path_Ex_Timer = new QTimer(this);
-    connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
+  Path_Ex_Timer = new QTimer(this);
+  connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
 
 
   // OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);
+
+
+
+
+
+
+
+
+
+
+
+  //--------------------------------------------------------------------------------------
+
+  int stuff = 0 ;
+
+  ActuatorController::initController(stuff, 0);
+
+  ptr_AC = ActuatorController::getInstance();
+
+  ptr_AC->autoRecoginze();
+
+
+  QTimer * QuaTimer = new QTimer;
+
+  connect(QuaTimer , &QTimer::timeout , this , &MyPlugin::quatimercallback);
+  QuaTimer->start(30);
+
+  ptr_AC->m_sQuaternion.connect_member(this , &MyPlugin::quaternioncallback);
+
+  ConvertTimer = new QTimer;
+
+  connect(ConvertTimer , &QTimer::timeout , this , &MyPlugin::quaterion2joint);
+
+
+
+  connect(ui_.InitIMU , &QPushButton::clicked, this , &MyPlugin::on_InitIMU_clicked);
+
+  FigureGearRatios = 1.0 + 54.0 / 45.0 + 54.0 * 54.0 / 45.0 / 45.0;
+
+  ThumbGearRatio = 1.0 + 54.0 / 45.0;
+
+  connect(ui_.CollectIMU , &QPushButton::clicked , this , &MyPlugin::on_CollectIMU_clicked);
+  connect(ui_.SaveIMU , &QPushButton::clicked , this , &MyPlugin::on_SaveIMU_clicked);
+
+
+
+
+  //-------------------------------------------------------------------------------
+
+
+  Left_ShoulderX_q = 0;
+  Left_ShoulderY_q = 0;
+  Left_Elbow_Z_q = 0;
+  Left_Elbow_X_q = 0;
+  Left_Wrist_Y_q = 0;
+  Left_Wrist_X_q = 0;
+  Left_Wrist_Z_q = 0;
+  L_I_q = 0;
+  L_T_q = 0;
+  L_R_q = 0;
+  L_P_q = 0;
+  L_M_q = 0;
+  Right_ShoulderX_q = 0;
+  Right_ShoulderY_q = 0;
+  Right_Elbow_Z_q = 0;
+  Right_Elbow_X_q = 0;
+  Right_Wrist_Y_q = 0;
+  Right_Wrist_X_q = 0;
+  Right_Wrist_Z_q = 0;
+  R_I_q = 0;
+  R_T_q = 0;
+  R_R_q = 0;
+  R_P_q = 0;
+  R_M_q = 0;
 
 
 }
@@ -712,6 +807,813 @@ void MyPlugin::onJointRotationVisualizationFinish() {
 //   ui_.Save_Current->setEnabled(true);
 // }
 
+
+
+void MyPlugin::on_InitIMU_clicked()
+{
+  Back_init = Back_raw;
+  LS_init = LS_raw;
+  LA_init = LA_raw;
+  LH_init = LH_raw;
+
+  L_I_init = L_I_raw ;
+  L_T_init = L_T_raw ;
+  L_R_init = L_R_raw ;
+  L_P_init = L_P_raw ;
+  L_M_init = L_M_raw ;
+
+
+  RS_init = RS_raw;
+  RA_init = RA_raw;
+  RH_init = RH_raw;
+
+  R_I_init = R_I_raw ;
+  R_T_init = R_T_raw ;
+  R_R_init = R_R_raw ;
+  R_P_init = R_P_raw ;
+  R_M_init = R_M_raw ;
+
+  ConvertTimer->stop();
+  ConvertTimer->start(50);
+}
+
+void MyPlugin::quatimercallback()
+{
+  // ROS_INFO("Requesting !!!!");
+  ptr_AC->requestAllQuaternions();
+}
+
+
+void MyPlugin::quaternioncallback(uint8_t id , double w, double x , double y , double z) {
+  // ROS_INFO("[%d] [%f] [%f] [%f] [%f]", id , w, x , y , z);
+  Quaterniond temp_q;
+  Quaterniond temp_temp_q;
+  Quaterniond new_q;
+  Quaterniond new_new_q;
+
+  Matrix3d rot;
+
+  Vector3d unit_y(0, 1, 0);
+  Vector3d unit_x(1, 0, 0);
+
+  switch (id) {
+  case 1:
+    Back_raw.w() = w;
+    Back_raw.x() = x;
+    Back_raw.y() = y;
+    Back_raw.z() = z;
+    Back_q = Back_init.inverse() * Back_raw ;
+    break;
+
+  case 2:
+    LS_raw.w() = w;
+    LS_raw.x() = x;
+    LS_raw.y() = y;
+    LS_raw.z() = z;
+
+//        temp_q = Back_init.inverse() * LS_init;
+//        new_q = temp_q.inverse() * Back_q * temp_q;
+//        LS_q = new_q.inverse() * LS_init.inverse() * LS_raw;
+
+    temp_q =   Back_init.inverse() * LS_init;
+    LS_q = Back_raw.inverse() * LS_raw * temp_q.inverse();
+
+
+    temp_q = Back_raw.inverse() * LS_raw;
+    LS_v = temp_q.toRotationMatrix() * unit_y;
+    break;
+
+
+  case 3:
+    LA_raw.w() = w;
+    LA_raw.x() = x;
+    LA_raw.y() = y;
+    LA_raw.z() = z;
+
+//        temp_q = LS_init.inverse() * LA_init;
+//        new_q = temp_q.inverse() * LS_init.inverse() * LS_raw * temp_q;
+//        LA_q = new_q.inverse() * LA_init.inverse() * LA_raw;
+
+
+    temp_q = Back_init.inverse() * LA_init;
+    LA_q = LS_q.inverse() * Back_raw.inverse() * LA_raw * temp_q.inverse();
+
+
+    rot = EulerXYZ(Left_ShoulderX_q , 0 , Left_ShoulderY_q);
+
+    temp_q = Back_raw.inverse() * LA_raw;
+    LA_v = temp_q.toRotationMatrix() * unit_y;
+    LA_v = rot.transpose() * LA_v;
+    break;
+
+  case 7:
+    LH_raw.w() = w;
+    LH_raw.x() = x;
+    LH_raw.y() = y;
+    LH_raw.z() = z;
+
+
+    temp_temp_q = Back_init.inverse() * LH_init;
+
+    rot = EulerXYZ(Left_ShoulderX_q , 0 , Left_ShoulderY_q) * EulerZYX(-Left_Elbow_X_q , Left_Elbow_Z_q, 0);
+
+    // rot =  temp_temp_q.toRotationMatrix();
+
+    temp_q = Back_raw.inverse() * LH_raw ;
+    LH_m =  rot.transpose() * temp_q.toRotationMatrix() * temp_temp_q.inverse().toRotationMatrix();
+    break;
+
+  case 9:
+
+    L_T_raw.w() = w;
+    L_T_raw.x() = x;
+    L_T_raw.y() = y;
+    L_T_raw.z() = z;
+
+
+    temp_q = LH_init.inverse() * L_T_init;
+    new_q = temp_q.inverse() * LH_init.inverse() * LH_raw * temp_q;
+    L_T_qq = new_q.inverse() * L_T_init.inverse() * L_T_raw;
+
+    L_T_v = L_T_qq.toRotationMatrix() * unit_x;
+    break;
+
+  case 11:
+
+    L_I_raw.w() = w;
+    L_I_raw.x() = x;
+    L_I_raw.y() = y;
+    L_I_raw.z() = z;
+
+    temp_q = LH_raw.inverse() * L_I_raw;
+    L_I_v = temp_q.toRotationMatrix() * unit_x;
+    break;
+
+  case 13:
+
+    L_M_raw.w() = w;
+    L_M_raw.x() = x;
+    L_M_raw.y() = y;
+    L_M_raw.z() = z;
+
+    temp_q = LH_raw.inverse() * L_M_raw;
+    L_M_v = temp_q.toRotationMatrix() * unit_x;
+    break;
+
+  case 15:
+
+    L_R_raw.w() = w;
+    L_R_raw.x() = x;
+    L_R_raw.y() = y;
+    L_R_raw.z() = z;
+
+    temp_q = LH_raw.inverse() * L_R_raw;
+    L_R_v = temp_q.toRotationMatrix() * unit_x;
+    break;
+
+  case 17:
+
+    L_P_raw.w() = w;
+    L_P_raw.x() = x;
+    L_P_raw.y() = y;
+    L_P_raw.z() = z;
+
+    temp_q = LH_raw.inverse() * L_P_raw;
+    L_P_v = temp_q.toRotationMatrix() * unit_x;
+
+    break;
+
+  case 4:
+    RS_raw.w() = w;
+    RS_raw.x() = x;
+    RS_raw.y() = y;
+    RS_raw.z() = z;
+
+    temp_q =   Back_init.inverse() * RS_init;
+    RS_q = Back_raw.inverse() * RS_raw * temp_q.inverse();
+
+
+    temp_q = Back_raw.inverse() * RS_raw;
+    RS_v = temp_q.toRotationMatrix() * unit_y;
+    break;
+
+  case 5:
+    RA_raw.w() = w;
+    RA_raw.x() = x;
+    RA_raw.y() = y;
+    RA_raw.z() = z;
+
+    temp_q = Back_init.inverse() * RA_init;
+    RA_q = RS_q.inverse() * Back_raw.inverse() * RA_raw * temp_q.inverse();
+
+
+    rot = EulerXYZ(Right_ShoulderX_q , 0 , Right_ShoulderY_q);
+
+    temp_q = Back_raw.inverse() * RA_raw;
+    RA_v = temp_q.toRotationMatrix() * unit_y;
+    RA_v = rot.transpose() * RA_v;
+    break;
+
+  case 8:
+    RH_raw.w() = w;
+    RH_raw.x() = x;
+    RH_raw.y() = y;
+    RH_raw.z() = z;
+
+    temp_temp_q = Back_init.inverse() * RH_init;
+
+    rot = EulerXYZ(Right_ShoulderX_q , 0 , Right_ShoulderY_q) * EulerZYX(-Right_Elbow_X_q , Right_Elbow_Z_q, 0);
+
+    // rot =  temp_temp_q.toRotationMatrix();
+
+    temp_q = Back_raw.inverse() * RH_raw ;
+    RH_m =  rot.transpose() * temp_q.toRotationMatrix() * temp_temp_q.inverse().toRotationMatrix();
+    break;
+
+
+  case 10:
+
+    R_T_raw.w() = w;
+    R_T_raw.x() = x;
+    R_T_raw.y() = y;
+    R_T_raw.z() = z;
+
+
+    temp_q = RH_init.inverse() * R_T_init;
+    new_q = temp_q.inverse() * RH_init.inverse() * RH_raw * temp_q;
+    R_T_qq = new_q.inverse() * R_T_init.inverse() * R_T_raw;
+
+    R_T_v = R_T_qq.toRotationMatrix() * unit_x;
+    break;
+
+  case 12:
+
+    R_I_raw.w() = w;
+    R_I_raw.x() = x;
+    R_I_raw.y() = y;
+    R_I_raw.z() = z;
+
+    temp_q = RH_raw.inverse() * R_I_raw;
+    R_I_v = temp_q.toRotationMatrix() * unit_x;
+    break;
+  case 14:
+
+    R_M_raw.w() = w;
+    R_M_raw.x() = x;
+    R_M_raw.y() = y;
+    R_M_raw.z() = z;
+
+    temp_q = RH_raw.inverse() * R_M_raw;
+    R_M_v = temp_q.toRotationMatrix() * unit_x;
+    break;
+
+  case 16:
+
+    R_R_raw.w() = w;
+    R_R_raw.x() = x;
+    R_R_raw.y() = y;
+    R_R_raw.z() = z;
+
+    temp_q = RH_raw.inverse() * R_R_raw;
+    R_R_v = temp_q.toRotationMatrix() * unit_x;
+    break;
+
+  case 18:
+
+    R_P_raw.w() = w;
+    R_P_raw.x() = x;
+    R_P_raw.y() = y;
+    R_P_raw.z() = z;
+
+    temp_q = RH_raw.inverse() * R_P_raw;
+    R_P_v = temp_q.toRotationMatrix() * unit_x;
+    break;
+
+  default:
+    break;
+  }
+}
+
+
+
+void MyPlugin::quaterion2joint() {
+
+
+  Vector3d temp = quaternion2ZYX( Back_q.w(), Back_q.x(), Back_q.y(), Back_q.z());
+  ROS_INFO(" The Back X is [%f] " , temp(2));
+  ROS_INFO(" The Back Z is [%f] " , temp(0));
+
+
+
+  Quaterniond ran_q = Back_raw.inverse() * RS_raw;
+  ROS_INFO(" The RS Quaternion is [%f] [%f] [%f] [%f]" , ran_q.w() , ran_q.x() , ran_q.y() , ran_q.z());
+
+
+  ROS_INFO(" The RS Vector is [%f] [%f] [%f]" , RS_v(0) , RS_v(1) , RS_v(2));
+  temp = Vector2XZ(RS_v);
+
+  Right_ShoulderX_q = EasyKalman(Right_ShoulderX_q , temp(0));
+  Right_ShoulderY_q = EasyKalman(Right_ShoulderY_q , temp(2));
+
+
+  ROS_INFO(" The Right_ShoulderX_q is [%f] " , Right_ShoulderX_q);
+  ROS_INFO(" The Right_ShoulderY_q is [%f] " , Right_ShoulderY_q);
+
+
+  ROS_INFO(" The RA Vector is [%f] [%f] [%f]" , RA_v(0) , RA_v(1) , RA_v(2));
+
+  temp = Vector2YX(RA_v);
+
+  Right_Elbow_Z_q = EasyKalman(Right_Elbow_Z_q , temp(1));
+  Right_Elbow_X_q = EasyKalman(Right_Elbow_X_q , temp(0));
+
+  ROS_INFO(" The Right_Elbow_Z_q is [%f] " ,  Right_Elbow_Z_q);
+  ROS_INFO(" The Right_Elbow_X_q is [%f] " ,  Right_Elbow_X_q);
+
+
+  temp = Matrix2YZX( RH_m);
+
+  Right_Wrist_Z_q = EasyKalman(Right_Wrist_Z_q , temp(1));
+  Right_Wrist_Y_q = EasyKalman(Right_Wrist_Y_q , temp(2));
+  Right_Wrist_X_q = EasyKalman(Right_Wrist_X_q , temp(0));
+
+  ROS_INFO(" The Right_Wrist_Z_q is [%f] " , Right_Wrist_Z_q);
+  ROS_INFO(" The Right_Wrist_Y_q is [%f] " , Right_Wrist_Y_q);
+  ROS_INFO(" The Right_Wrist_X_q is [%f] " , Right_Wrist_X_q);
+
+
+
+  temp = FingerVector2YX( R_T_v);
+  ROS_INFO( " THE R_T_v is [%f] [%f] [%f]" , R_T_v(0) , R_T_v(1) , R_T_v(2));
+  R_T_q = EasyKalman(R_T_q , temp(1));
+
+  ROS_INFO("  The Right_index is [%f] ", R_T_q);
+
+  temp = FingerVector2YX(R_I_v);
+  ROS_INFO( " THE R_I_v is [%f] [%f] [%f]" , R_I_v(0) , R_I_v(1) , R_I_v(2));
+  R_I_q = EasyKalman(R_I_q , temp(1));
+
+  ROS_INFO("  The Right_index is [%f] ", R_I_q);
+
+  temp = FingerVector2YX( R_M_v);
+  ROS_INFO( " THE L_M_v is [%f] [%f] [%f]" , R_M_v(0) , R_M_v(1) , R_M_v(2));
+  R_M_q = EasyKalman(R_M_q , temp(1));
+
+  ROS_INFO("  The Right_index is [%f] ", R_M_q);
+
+  temp = FingerVector2YX( R_R_v);
+  ROS_INFO( " THE R_R_v is [%f] [%f] [%f]" , R_R_v(0) , R_R_v(1) , R_R_v(2));
+  R_R_q = EasyKalman(R_R_q , temp(1));
+
+  ROS_INFO("  The Right_index is [%f] ", R_R_q);
+
+  temp = FingerVector2YX( R_P_v);
+  ROS_INFO( " THE L_P_v is [%f] [%f] [%f]" , R_P_v(0) , R_P_v(1) , R_P_v(2));
+  R_P_q = EasyKalman(R_P_q , temp(1));
+
+  ROS_INFO("  The Right_index is [%f] ", R_P_q);
+
+
+
+  // temp = quaternion2XYZ( L_T_qq.w(), L_T_qq.x(), L_T_qq.y(), L_T_qq.z());
+
+  // L_T_q = temp(1);
+
+  // ROS_INFO("  The Left_index is [%f] ", L_T_q);
+
+  // temp = quaternion2XYZ( L_I_qq.w(), L_I_qq.x(), L_I_qq.y(), L_I_qq.z());
+
+  // L_I_q = temp(0);
+
+  // ROS_INFO("  The Left_index is [%f] ", L_I_q);
+
+  // temp = quaternion2XYZ( L_M_qq.w(), L_M_qq.x(), L_M_qq.y(), L_M_qq.z());
+
+  // L_M_q = temp(0);
+
+  // ROS_INFO("  The Left_index is [%f] ", L_M_q);
+
+
+  // temp = quaternion2XYZ( L_R_qq.w(), L_R_qq.x(), L_R_qq.y(), L_R_qq.z());
+
+  // L_R_q = temp(0);
+
+  // ROS_INFO("  The Left_index is [%f] ", L_R_q);
+
+  // temp = quaternion2XYZ( L_P_qq.w(), L_P_qq.x(), L_P_qq.y(), L_P_qq.z());
+
+  // L_P_q = temp(0);
+
+  // ROS_INFO("  The Left_index is [%f] ", L_P_q);
+
+
+
+
+  ROS_INFO(" The LS Vector is [%f] [%f] [%f]" , LS_v(0) , LS_v(1) , LS_v(2));
+  temp = Vector2XZ(LS_v);
+
+  Left_ShoulderX_q = EasyKalman(Left_ShoulderX_q , temp(0));
+  Left_ShoulderY_q = EasyKalman(Left_ShoulderY_q , temp(2));
+
+
+  ROS_INFO(" The Left_ShoulderX_q is [%f] " , Left_ShoulderX_q);
+  ROS_INFO(" The Left_ShoulderY_q is [%f] " , Left_ShoulderY_q);
+
+
+
+  // temp = quaternion2ZYX( LA_q.w(), LA_q.x(), LA_q.y(), LA_q.z());
+
+  // Left_Elbow_Z_q = temp(1);
+  // Left_Elbow_X_q = temp(2);
+
+  ROS_INFO(" The LA Vector is [%f] [%f] [%f]" , LA_v(0) , LA_v(1) , LA_v(2));
+
+  temp = Vector2YX(LA_v);
+
+  Left_Elbow_Z_q = EasyKalman(Left_Elbow_Z_q , temp(1));
+  Left_Elbow_X_q = EasyKalman(Left_Elbow_X_q , temp(0));
+
+  ROS_INFO(" The Left_Elbow_Z_q is [%f] " ,  Left_Elbow_Z_q);
+  ROS_INFO(" The Left_Elbow_X_q is [%f] " ,  Left_Elbow_X_q);
+
+
+
+
+
+  // temp = quaternion2ZYX( LH_q.w(), LH_q.x(), LH_q.y(), LH_q.z());
+
+  // Left_Wrist_Z_q = temp(1);
+  // Left_Wrist_Y_q = temp(0);
+  // Left_Wrist_X_q = temp(2);
+
+  // ROS_INFO(" The Left_Wrist_Z_q is [%f] " , Left_Wrist_Z_q);
+  // ROS_INFO(" The Left_Wrist_Y_q is [%f] " , Left_Wrist_Y_q);
+  // ROS_INFO(" The Left_Wrist_X_q is [%f] " , Left_Wrist_X_q);
+
+
+
+  // Eigen::Quaterniond temp_q = Back_raw.inverse() * LH_raw;
+  // ROS_INFO( " THE Quaterion for back is [%f] [%f] [%f] [%f]" , Back_q.w() , Back_q.z() , Back_q.y() , Back_q.z());
+  // ROS_INFO( " THE Quaterion for hand is [%f] [%f] [%f] [%f]" , temp_q.w() , temp_q.z() , temp_q.y() , temp_q.z());
+  // temp_q = Back_raw.inverse() * LA_raw;
+  // ROS_INFO( " THE Quaterion for arms is [%f] [%f] [%f] [%f]" , temp_q.w() , temp_q.z() , temp_q.y() , temp_q.z());
+
+
+
+  // Eigen::Matrix3d rot = EulerXYZ(Left_ShoulderX_q , 0 , Left_ShoulderY_q) * EulerZYX(-Left_Elbow_X_q , Left_Elbow_Z_q, 0);
+
+
+  // ROS_INFO( " THE MATRIX for hand is [%f] [%f] [%f]" , LH_m(0, 0) , LH_m(0, 1) , LH_m(0, 2));
+  // ROS_INFO( " THE MATRIX for hand is [%f] [%f] [%f]" , LH_m(1, 0) , LH_m(1, 1) , LH_m(1, 2));
+  // ROS_INFO( " THE MATRIX for hand is [%f] [%f] [%f]" , LH_m(2, 0) , LH_m(2, 1) , LH_m(2, 2));
+
+
+  // ROS_INFO( " THE MATRIX for rot is [%f] [%f] [%f]" , rot(0, 0) , rot(0, 1) , rot(0, 2));
+  // ROS_INFO( " THE MATRIX for rot is [%f] [%f] [%f]" , rot(1, 0) , rot(1, 1) , rot(1, 2));
+  // ROS_INFO( " THE MATRIX for rot is [%f] [%f] [%f]" , rot(2, 0) , rot(2, 1) , rot(2, 2));
+
+
+
+  temp = Matrix2YZX( LH_m);
+
+  Left_Wrist_Z_q = EasyKalman(Left_Wrist_Z_q, temp(1));
+  Left_Wrist_Y_q = EasyKalman(Left_Wrist_Y_q, temp(2));
+  Left_Wrist_X_q = EasyKalman(Left_Wrist_X_q, temp(0));
+
+  ROS_INFO(" The Left_Wrist_Z_q is [%f] " , Left_Wrist_Z_q);
+  ROS_INFO(" The Left_Wrist_Y_q is [%f] " , Left_Wrist_Y_q);
+  ROS_INFO(" The Left_Wrist_X_q is [%f] " , Left_Wrist_X_q);
+
+
+
+  temp = FingerVector2YX( L_T_v);
+  ROS_INFO( " THE L_T_v is [%f] [%f] [%f]" , L_T_v(0) , L_T_v(1) , L_T_v(2));
+  L_T_q = EasyKalman(L_T_q , temp(1));
+
+  ROS_INFO("  The Left_index is [%f] ", L_T_q);
+
+  temp = FingerVector2YX( L_I_v);
+  ROS_INFO( " THE L_I_v is [%f] [%f] [%f]" , L_I_v(0) , L_I_v(1) , L_I_v(2));
+  L_I_q = EasyKalman(L_I_q , temp(1));
+
+  ROS_INFO("  The Left_index is [%f] ", L_I_q);
+
+  temp = FingerVector2YX( L_M_v);
+  ROS_INFO( " THE L_M_v is [%f] [%f] [%f]" , L_M_v(0) , L_M_v(1) , L_M_v(2));
+  L_M_q = EasyKalman(L_M_q , temp(1));
+
+  ROS_INFO("  The Left_index is [%f] ", L_M_q);
+
+
+  temp = FingerVector2YX( L_R_v);
+  ROS_INFO( " THE L_R_v is [%f] [%f] [%f]" , L_R_v(0) , L_R_v(1) , L_R_v(2));
+  L_R_q = EasyKalman(L_R_q , temp(1));
+
+  ROS_INFO("  The Left_index is [%f] ", L_R_q);
+
+  temp = FingerVector2YX( L_P_v);
+  ROS_INFO( " THE L_P_v is [%f] [%f] [%f]" , L_P_v(0) , L_P_v(1) , L_P_v(2));
+  L_P_q = EasyKalman(L_P_q , temp(1));
+
+  ROS_INFO("  The Left_index is [%f] ", L_P_q);
+
+//   Quaterniond temp_p = Back_init.inverse() * Back_raw;
+//   temp = quaternion2ZYX( temp_p.w(), temp_p.x(), temp_p.y(), temp_p.z());
+//   ROS_INFO( " The 01 Angles are [%f] [%f] [%f] [%f] " , temp_p.w() , temp_p.x() , temp_p.y() ,temp_p.z());
+
+
+
+//   temp_p = LS_init.inverse() * LS_raw;
+//   temp = quaternion2ZYX( temp_p.w(), temp_p.x(), temp_p.y(), temp_p.z());
+//   ROS_INFO( "  The 02 Angles are [%f] [%f] [%f] [%f] " , LS_q.w() ,LS_q.x() , LS_q.y() , LS_q.z());
+
+//   temp_p = LA_init.inverse() * LA_raw;
+//   temp = quaternion2ZYX( temp_p.w(), temp_p.x(), temp_p.y(), temp_p.z());
+// //    qDebug() << " The 03 Angles are " << temp(0) << " " << temp(1) << " " << temp(2);
+//   ROS_INFO( "  The 03 Angles are [%f] [%f] [%f] [%f] " , LA_q.w() , LA_q.x() , LA_q.y() , LA_q.z());
+
+
+
+  if (ui_.tabWidget->currentIndex() == 7) {
+
+    std::vector<double> imu_joint_angles;
+
+    for (int i = 0 ; i < 7 ; i++)
+      imu_joint_angles.push_back(0.0);
+
+    imu_joint_angles.push_back(-Left_ShoulderX_q);
+    imu_joint_angles.push_back(Left_ShoulderY_q);
+    imu_joint_angles.push_back(Left_Elbow_Z_q);
+    imu_joint_angles.push_back(Left_Elbow_X_q);
+    imu_joint_angles.push_back(Left_Wrist_Z_q);
+    imu_joint_angles.push_back(Left_Wrist_Y_q);
+    imu_joint_angles.push_back(-Left_Wrist_X_q);
+
+    imu_joint_angles.push_back(-Right_ShoulderX_q);
+    imu_joint_angles.push_back(Right_ShoulderY_q);
+    imu_joint_angles.push_back(Right_Elbow_Z_q);
+    imu_joint_angles.push_back(Right_Elbow_X_q);
+    imu_joint_angles.push_back(Right_Wrist_Z_q);
+    imu_joint_angles.push_back(Right_Wrist_Y_q);
+    imu_joint_angles.push_back(-Right_Wrist_X_q);
+
+    JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(imu_joint_angles));
+
+
+
+    double imu_hand_angles[5];
+
+    imu_hand_angles[0] = L_T_q / ThumbGearRatio;
+    imu_hand_angles[1] = L_I_q / FigureGearRatios;
+    imu_hand_angles[2] = L_M_q / FigureGearRatios;
+    imu_hand_angles[3] = L_R_q / FigureGearRatios;
+    imu_hand_angles[4] = L_P_q / FigureGearRatios;
+
+    LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(imu_hand_angles));
+
+
+    imu_hand_angles[0] = R_T_q / ThumbGearRatio;
+    imu_hand_angles[1] = R_I_q / FigureGearRatios;
+    imu_hand_angles[2] = R_M_q / FigureGearRatios;
+    imu_hand_angles[3] = R_R_q / FigureGearRatios;
+    imu_hand_angles[4] = R_P_q / FigureGearRatios;
+
+    RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(imu_hand_angles));
+
+
+    if (CollectIMUSwitch) {
+
+      std::vector<double> temp_IMUData;
+
+      temp_IMUData.push_back(Back_raw.w());
+      temp_IMUData.push_back(Back_raw.x());
+      temp_IMUData.push_back(Back_raw.y());
+      temp_IMUData.push_back(Back_raw.z());
+      temp_IMUData.push_back(LS_raw.w());
+      temp_IMUData.push_back(LS_raw.x());
+      temp_IMUData.push_back(LS_raw.y());
+      temp_IMUData.push_back(LS_raw.z());
+      temp_IMUData.push_back(LA_raw.w());
+      temp_IMUData.push_back(LA_raw.x());
+      temp_IMUData.push_back(LA_raw.y());
+      temp_IMUData.push_back(LA_raw.z());
+      temp_IMUData.push_back(LH_raw.w());
+      temp_IMUData.push_back(LH_raw.x());
+      temp_IMUData.push_back(LH_raw.y());
+      temp_IMUData.push_back(LH_raw.z());
+      temp_IMUData.push_back(L_T_raw.w());
+      temp_IMUData.push_back(L_T_raw.x());
+      temp_IMUData.push_back(L_T_raw.y());
+      temp_IMUData.push_back(L_T_raw.z());
+      temp_IMUData.push_back(L_I_raw.w());
+      temp_IMUData.push_back(L_I_raw.x());
+      temp_IMUData.push_back(L_I_raw.y());
+      temp_IMUData.push_back(L_I_raw.z());
+      temp_IMUData.push_back(L_M_raw.w());
+      temp_IMUData.push_back(L_M_raw.x());
+      temp_IMUData.push_back(L_M_raw.y());
+      temp_IMUData.push_back(L_M_raw.z());
+      temp_IMUData.push_back(L_R_raw.w());
+      temp_IMUData.push_back(L_R_raw.x());
+      temp_IMUData.push_back(L_R_raw.y());
+      temp_IMUData.push_back(L_R_raw.z());
+      temp_IMUData.push_back(L_P_raw.w());
+      temp_IMUData.push_back(L_P_raw.x());
+      temp_IMUData.push_back(L_P_raw.y());
+      temp_IMUData.push_back(L_P_raw.z());
+
+      temp_IMUData.push_back(RS_raw.w());
+      temp_IMUData.push_back(RS_raw.x());
+      temp_IMUData.push_back(RS_raw.y());
+      temp_IMUData.push_back(RS_raw.z());
+      temp_IMUData.push_back(RA_raw.w());
+      temp_IMUData.push_back(RA_raw.x());
+      temp_IMUData.push_back(RA_raw.y());
+      temp_IMUData.push_back(RA_raw.z());
+      temp_IMUData.push_back(RH_raw.w());
+      temp_IMUData.push_back(RH_raw.x());
+      temp_IMUData.push_back(RH_raw.y());
+      temp_IMUData.push_back(RH_raw.z());
+      temp_IMUData.push_back(R_T_raw.w());
+      temp_IMUData.push_back(R_T_raw.x());
+      temp_IMUData.push_back(R_T_raw.y());
+      temp_IMUData.push_back(R_T_raw.z());
+      temp_IMUData.push_back(R_I_raw.w());
+      temp_IMUData.push_back(R_I_raw.x());
+      temp_IMUData.push_back(R_I_raw.y());
+      temp_IMUData.push_back(R_I_raw.z());
+      temp_IMUData.push_back(R_M_raw.w());
+      temp_IMUData.push_back(R_M_raw.x());
+      temp_IMUData.push_back(R_M_raw.y());
+      temp_IMUData.push_back(R_M_raw.z());
+      temp_IMUData.push_back(R_R_raw.w());
+      temp_IMUData.push_back(R_R_raw.x());
+      temp_IMUData.push_back(R_R_raw.y());
+      temp_IMUData.push_back(R_R_raw.z());
+      temp_IMUData.push_back(R_P_raw.w());
+      temp_IMUData.push_back(R_P_raw.x());
+      temp_IMUData.push_back(R_P_raw.y());
+      temp_IMUData.push_back(R_P_raw.z());
+
+
+      temp_IMUData.push_back(-Left_ShoulderX_q);
+      temp_IMUData.push_back(Left_ShoulderY_q);
+      temp_IMUData.push_back(Left_Elbow_Z_q);
+      temp_IMUData.push_back(Left_Elbow_X_q);
+      temp_IMUData.push_back(Left_Wrist_Z_q);
+      temp_IMUData.push_back(Left_Wrist_Y_q);
+      temp_IMUData.push_back(-Left_Wrist_X_q);
+
+      temp_IMUData.push_back(L_T_q);
+      temp_IMUData.push_back(L_I_q);
+      temp_IMUData.push_back(L_M_q);
+      temp_IMUData.push_back(L_R_q);
+      temp_IMUData.push_back(L_P_q);
+
+      temp_IMUData.push_back(-Right_ShoulderX_q);
+      temp_IMUData.push_back(Right_ShoulderY_q);
+      temp_IMUData.push_back(Right_Elbow_Z_q);
+      temp_IMUData.push_back(Right_Elbow_X_q);
+      temp_IMUData.push_back(Right_Wrist_Z_q);
+      temp_IMUData.push_back(Right_Wrist_Y_q);
+      temp_IMUData.push_back(-Right_Wrist_X_q);
+
+      temp_IMUData.push_back(R_T_q);
+      temp_IMUData.push_back(R_I_q);
+      temp_IMUData.push_back(R_M_q);
+      temp_IMUData.push_back(R_R_q);
+      temp_IMUData.push_back(R_P_q);
+
+
+      IMUData.push_back(temp_IMUData);
+
+    }
+
+  }
+
+}
+
+
+Eigen::Vector3d MyPlugin::quaternion2ZYX(double qw, double qx, double qy, double qz) {
+
+  double aSinInput = -2 * (qx * qz - qw * qy);
+  if (aSinInput > 1) aSinInput = 1;
+  if (aSinInput < -1) aSinInput = -1;
+
+  Eigen::Vector3d res(atan2( 2 * (qx * qy + qw * qz), qw * qw + qx * qx - qy * qy - qz * qz ),
+                      asin( aSinInput ),
+                      atan2( 2 * (qy * qz + qw * qx), qw * qw - qx * qx - qy * qy + qz * qz ));
+
+  return res;
+}
+
+
+Eigen::Vector3d MyPlugin::quaternion2XYZ(double qw, double qx, double qy, double qz) {
+
+  double aSinInput = 2 * (qx * qz + qy * qw);
+  if (aSinInput > 1) aSinInput = 1;
+  if (aSinInput < -1) aSinInput = -1;
+
+  Eigen::Vector3d res( atan2( -2 * (qy * qz - qx * qw), qw * qw - qx * qx - qy * qy + qz * qz ),
+                       asin( aSinInput ),
+                       atan2( -2 * (qx * qy - qz * qw), qw * qw + qx * qx - qy * qy - qz * qz ));
+
+  return res;
+}
+
+Eigen::Vector3d MyPlugin::Matrix2ZYX(Eigen::Matrix3d input) {
+
+  Eigen::Vector3d res( atan2( input(2, 1) , input(2, 2)),
+                       asin(  input(1, 0)),
+                       atan2( input(1, 0) , input(0, 0)));
+
+  return res;
+}
+
+
+Eigen::Vector3d MyPlugin::Matrix2YZX(Eigen::Matrix3d input) {
+
+  Eigen::Vector3d res( atan2( -input(1, 2) , input(1, 1)),
+                       atan2( -input(2, 0) , input(0, 0)),
+                       asin(  input(1, 0)));
+
+  return res;
+}
+
+
+Eigen::Matrix3d MyPlugin::EulerXYZ(double x , double y , double z ) {
+  Eigen::Matrix3d res;
+  ;
+  res <<              cos(y)*cos(z),                       -cos(y)*sin(z),         sin(y),
+      cos(x)*sin(z) + cos(z)*sin(x)*sin(y), cos(x)*cos(z) - sin(x)*sin(y)*sin(z), -cos(y)*sin(x),
+      sin(x)*sin(z) - cos(x)*cos(z)*sin(y), cos(z)*sin(x) + cos(x)*sin(y)*sin(z),  cos(x)*cos(y);
+
+  return res;
+}
+
+
+
+Eigen::Matrix3d MyPlugin::EulerZYX(double x , double y , double z ) {
+  Eigen::Matrix3d res;
+  res << cos(y)*cos(z), cos(z)*sin(x)*sin(y) - cos(x)*sin(z), sin(x)*sin(z) + cos(x)*cos(z)*sin(y),
+      cos(y)*sin(z), cos(x)*cos(z) + sin(x)*sin(y)*sin(z), cos(x)*sin(y)*sin(z) - cos(z)*sin(x),
+      -sin(y),                        cos(y)*sin(x),                        cos(x)*cos(y);
+  return res;
+}
+
+
+
+Eigen::Vector3d MyPlugin::Vector2XZ(Eigen::Vector3d v) {
+  Eigen::Vector3d res = Eigen::VectorXd::Zero(3);
+
+  res(0) = atan2(v(2) , v(1));
+
+
+  res(2) = - asin(v(0) / v.norm());
+
+  if (abs(abs(res(2)) - PI / 2.0) < 0.03)
+    if (abs(v(2)) < 0.03 && abs(v(1) < 0.03))
+      res(0) = 0;
+
+  return res;
+
+}
+
+
+Eigen::Vector3d MyPlugin::Vector2YX(Eigen::Vector3d v) {
+  Eigen::Vector3d res = Eigen::VectorXd::Zero(3);
+
+  res(1) = atan2(v(0) , v(2));
+
+  res(0) = asin(v(1) / v.norm()) - PI / 2;
+
+  if (abs(res(0) ) < 0.03) res(1) = 0;
+  return res;
+}
+
+
+
+Eigen::Vector3d MyPlugin::FingerVector2YX(Eigen::Vector3d v) {
+  Eigen::Vector3d res = Eigen::VectorXd::Zero(3);
+
+  double v2 = (v(2) > 0) ? v(2) : 0.0;
+
+  res(1) = atan2(v(2) , v(0));
+
+  res(0) = asin(v(1) / v.norm()) - PI / 2;
+
+  if (res(1) < -1.5) res(1) = 3.0;
+
+  return res;
+}
+
+double MyPlugin::EasyKalman(double u, double v) {
+
+  static double filter_ratio = 0.5;
+  static double filter_error = 1.0 - filter_ratio;
+
+  return  u * filter_ratio + v * filter_error;
+}
 
 } // namespace
 

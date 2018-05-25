@@ -712,7 +712,51 @@ void MyPlugin::addOmniAction(std::vector<double> OmniAction) {
   m_ActionsOmni.push_back(OmniAction);
 }
 
+void MyPlugin::on_CollectIMU_clicked(){
+  CollectIMUSwitch = !CollectIMUSwitch;
+}
+
+
+void MyPlugin::on_SaveIMU_clicked(){
+
+  if (IMUData.size()) {
+    QFileDialog dialog(0, tr("Save IMU Data"), QDir::currentPath());
+    dialog.setFileMode(QFileDialog::AnyFile);
+    dialog.setAcceptMode(QFileDialog::AcceptSave);
+    dialog.setNameFilter(tr("justtext(*.txt)"));
+
+    if (dialog.exec() == QDialog::Accepted)
+    {
+      QString path = dialog.selectedFiles().first();
+      if (path.size() > 0)
+      {
+
+        if (!path.endsWith(".txt"))
+        {
+          path += ".txt";
+        }
+        QFile file(path);
+        if (file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
+        {
+          QTextStream out(&file);
+
+          for (int i = 0 ; i < IMUData.size() ; i++) {
+            for (int j = 0 ; j < IMUData[0].size() - 1; j++) {
+              out << IMUData[i][j] << " ";
+            }
+            out << IMUData[i][IMUData[0].size() - 1];
+            out <<  endl;
+          }
+        }
+        file.close();
+      }
+    }
+  }
+
+
+}
+
 } // namespace
 
 
-PLUGINLIB_DECLARE_CLASS(vrep_test, MyPlugin, vrep_test::MyPlugin, rqt_gui_cpp::Plugin)
+// PLUGINLIB_DECLARE_CLASS(vrep_test, MyPlugin, vrep_test::MyPlugin, rqt_gui_cpp::Plugin)

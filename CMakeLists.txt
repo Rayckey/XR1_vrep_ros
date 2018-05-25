@@ -1,7 +1,18 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(vrep_test)
 
-#add_compile_options(IMU_ENABLE)
+
+
+
+add_compile_options(-DIMU_ENABLE)
+
+add_compile_options(-std=c++11)
+add_compile_options(-fPIC)
+add_compile_options(-DQT_NO_VERSION_TAGGING)
+add_compile_options(-pthread)
+add_compile_options(-DASIO_STANDALONE)
+add_compile_options(-DASIO_HAS_STD_CHRONO)
+
 
 find_package(catkin REQUIRED COMPONENTS
   roscpp
@@ -16,10 +27,10 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
 )
 
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sdk/include)
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sdk/include/QtCore)
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sdk/include/QtNetWork)
-#include_directories(${CMAKE_CURRENT_SOURCE_DIR}/sdk/include/QtSerialPort)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/serialPort_Ethernet2CAN_sdk_v2.0.0/sdk/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/serialPort_Ethernet2CAN_sdk_v2.0.0/sdk/include/QtCore)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/serialPort_Ethernet2CAN_sdk_v2.0.0/sdk/include/QtNetwork)
+
 
 if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
   find_package(Qt5Widgets REQUIRED)
@@ -74,9 +85,6 @@ set(vrep_test_UIS
   src/my_plugin.ui
 )
 
-#set(motorA_LIB
-  #sdk/lib/linux_x86_64
-#)
 
 if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
   qt5_wrap_cpp(vrep_test_MOCS ${vrep_test_HDRS})
@@ -103,10 +111,14 @@ include_directories(
 )
 
 
-
+SET(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/serialPort_Ethernet2CAN_sdk_v2.0.0/sdk/lib/linux_x86_64)
+#message(${CMAKE_CURRENT_SOURCE_DIR}/serialPort_Ethernet2CAN_sdk_v2.0.0/sdk/include)
+link_directories(${LIB_DIR})
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  ${LIB_DIR}/libactuatorControllerd.so
+  
 )
 
 if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
