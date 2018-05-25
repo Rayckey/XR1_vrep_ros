@@ -48,7 +48,9 @@ endif()
    JointVisualization.msg
  )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/Eigen3)
+include_directories(
+${CMAKE_CURRENT_SOURCE_DIR}/Eigen3
+)
 
 
 add_service_files(DIRECTORY srv 
@@ -73,6 +75,7 @@ set (vrep_test_SRCS
   src/XR1.cpp
   src/my_plugin_ultis.cpp
   src/my_plugin_record.cpp
+  src/XR1IMUmethods.cpp
 )
 
 set(vrep_test_HDRS
@@ -100,7 +103,6 @@ include_directories(
 
  ${CMAKE_CURRENT_BINARY_DIR}/..
   ${catkin_INCLUDE_DIRS}
-  #${Eigen_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
