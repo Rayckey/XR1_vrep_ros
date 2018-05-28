@@ -3,7 +3,7 @@
 
 
 #include "eigen3/Eigen/Dense"
-#include "xr1IMUdefine.h"
+#include "XR1IMUdefine.h"
 #include <vector>
 
 using namespace Eigen;

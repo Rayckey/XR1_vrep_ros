@@ -845,7 +845,7 @@ void MyPlugin::quatimercallback()
 
 
 void MyPlugin::quaternioncallback(uint8_t id , double w, double x , double y , double z) {
-  // ROS_INFO("[%d] [%f] [%f] [%f] [%f]", id , w, x , y , z);
+  ROS_INFO("[%d] [%f] [%f] [%f] [%f]", id , w, x , y , z);
   Quaterniond temp_q;
   Quaterniond temp_temp_q;
   Quaterniond new_q;

@@ -86,7 +86,7 @@ public:
   //bool hasConfiguration() const;
   //void triggerConfiguration();
 
-  XR1IMUmethods::XR1IMUmethods();
+  XR1IMUmethods * XR1IMUptr();
 
 protected:
   void callbackImage(const sensor_msgs::Image::ConstPtr& msg);
