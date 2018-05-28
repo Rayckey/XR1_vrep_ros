@@ -55,6 +55,8 @@
 #include "Eigen/Dense"
 #include "Eigen/Geometry"
 #include "actuatorcontroller.h"
+#include "XR1IMUdefine.h"
+#include "XR1IMUmethods.h"
 
 
 using namespace Eigen;
@@ -83,6 +85,8 @@ public:
   // Comment in to signal that the plugin has a way to configure it
   //bool hasConfiguration() const;
   //void triggerConfiguration();
+
+  XR1IMUmethods::XR1IMUmethods();
 
 protected:
   void callbackImage(const sensor_msgs::Image::ConstPtr& msg);
