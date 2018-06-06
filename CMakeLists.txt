@@ -75,7 +75,6 @@ set (vrep_test_SRCS
   src/XR1.cpp
   src/my_plugin_ultis.cpp
   src/my_plugin_record.cpp
-  src/XR1IMUmethods.cpp
 )
 
 set(vrep_test_HDRS
@@ -120,7 +119,7 @@ link_directories(${LIB_DIR})
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
   ${LIB_DIR}/libactuatorControllerd.so
-  
+  ${CMAKE_CURRENT_SOURCE_DIR}/IMU-build/libXR1IMU.so
 )
 
 if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")

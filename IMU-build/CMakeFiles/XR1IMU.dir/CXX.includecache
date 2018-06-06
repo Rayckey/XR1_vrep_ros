@@ -1,0 +1,22 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.cpp
+XR1IMUmethods.h
+/home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.h
+
+/home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.h
+eigen3/Eigen/Dense
+/home/rocky/qtXR1/XR1IMU/XR1IMU/eigen3/Eigen/Dense
+xr1IMUdefine.h
+/home/rocky/qtXR1/XR1IMU/XR1IMU/xr1IMUdefine.h
+vector
+-
+
+/home/rocky/qtXR1/XR1IMU/XR1IMU/xr1IMUdefine.h
+

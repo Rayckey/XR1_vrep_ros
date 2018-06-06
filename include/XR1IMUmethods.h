@@ -3,7 +3,7 @@
 
 
 #include "eigen3/Eigen/Dense"
-#include "XR1IMUdefine.h"
+#include "xr1IMUdefine.h"
 #include <vector>
 
 using namespace Eigen;
@@ -18,13 +18,13 @@ public:
 
     void quaternioncallback(u_int8_t id , double w, double x, double y , double z );
 
-
+    void quaterion2joint();
 
 
 
 private:
 
-    void quaterion2joint();
+
 
     Vector3d quaternion2ZYX(double w, double qx, double qy , double qz );
 
@@ -37,6 +37,8 @@ private:
     Vector3d Matrix2ZYX(Matrix3d input);
 
     Vector3d Matrix2YZX(Matrix3d input);
+
+    Vector3d Matrix2ZXY(Eigen::Matrix3d input);
 
     Vector3d Vector2XZ(Vector3d v);
 
@@ -58,9 +60,15 @@ private:
 
     Matrix3d RH_m;
 
+    Matrix3d B_m;
+
     std::vector<double> JointAngles;
 
     double PI;
+
+    double Finger_Ratios;
+
+    double Thumb_Ratios;
 };
 
 #endif // XR1IMUMETHODS_H
