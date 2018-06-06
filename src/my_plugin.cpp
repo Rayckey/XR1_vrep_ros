@@ -1361,128 +1361,140 @@ void MyPlugin::quaterion2joint() {
 
 
 
-    double imu_hand_angles[5];
+    double imu_hand_anglesl[5];
 
-    imu_hand_angles[0] = L_T_q / ThumbGearRatio;
-    imu_hand_angles[1] = L_I_q / FigureGearRatios;
-    imu_hand_angles[2] = L_M_q / FigureGearRatios;
-    imu_hand_angles[3] = L_R_q / FigureGearRatios;
-    imu_hand_angles[4] = L_P_q / FigureGearRatios;
+    imu_hand_anglesl[0] = L_T_q / ThumbGearRatio;
+    imu_hand_anglesl[1] = L_I_q / FigureGearRatios;
+    imu_hand_anglesl[2] = L_M_q / FigureGearRatios;
+    imu_hand_anglesl[3] = L_R_q / FigureGearRatios;
+    imu_hand_anglesl[4] = L_P_q / FigureGearRatios;
 
-    LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(imu_hand_angles));
+    LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(imu_hand_anglesl));
 
+    double imu_hand_anglesr[5];
 
-    imu_hand_angles[0] = R_T_q / ThumbGearRatio;
-    imu_hand_angles[1] = R_I_q / FigureGearRatios;
-    imu_hand_angles[2] = R_M_q / FigureGearRatios;
-    imu_hand_angles[3] = R_R_q / FigureGearRatios;
-    imu_hand_angles[4] = R_P_q / FigureGearRatios;
+    imu_hand_anglesr[0] = R_T_q / ThumbGearRatio;
+    imu_hand_anglesr[1] = R_I_q / FigureGearRatios;
+    imu_hand_anglesr[2] = R_M_q / FigureGearRatios;
+    imu_hand_anglesr[3] = R_R_q / FigureGearRatios;
+    imu_hand_anglesr[4] = R_P_q / FigureGearRatios;
 
-    RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(imu_hand_angles));
+    RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(imu_hand_anglesr));
 
 
     if (CollectIMUSwitch) {
 
       std::vector<double> temp_IMUData;
 
-      temp_IMUData.push_back(Back_raw.w());
-      temp_IMUData.push_back(Back_raw.x());
-      temp_IMUData.push_back(Back_raw.y());
-      temp_IMUData.push_back(Back_raw.z());
-      temp_IMUData.push_back(LS_raw.w());
-      temp_IMUData.push_back(LS_raw.x());
-      temp_IMUData.push_back(LS_raw.y());
-      temp_IMUData.push_back(LS_raw.z());
-      temp_IMUData.push_back(LA_raw.w());
-      temp_IMUData.push_back(LA_raw.x());
-      temp_IMUData.push_back(LA_raw.y());
-      temp_IMUData.push_back(LA_raw.z());
-      temp_IMUData.push_back(LH_raw.w());
-      temp_IMUData.push_back(LH_raw.x());
-      temp_IMUData.push_back(LH_raw.y());
-      temp_IMUData.push_back(LH_raw.z());
-      temp_IMUData.push_back(L_T_raw.w());
-      temp_IMUData.push_back(L_T_raw.x());
-      temp_IMUData.push_back(L_T_raw.y());
-      temp_IMUData.push_back(L_T_raw.z());
-      temp_IMUData.push_back(L_I_raw.w());
-      temp_IMUData.push_back(L_I_raw.x());
-      temp_IMUData.push_back(L_I_raw.y());
-      temp_IMUData.push_back(L_I_raw.z());
-      temp_IMUData.push_back(L_M_raw.w());
-      temp_IMUData.push_back(L_M_raw.x());
-      temp_IMUData.push_back(L_M_raw.y());
-      temp_IMUData.push_back(L_M_raw.z());
-      temp_IMUData.push_back(L_R_raw.w());
-      temp_IMUData.push_back(L_R_raw.x());
-      temp_IMUData.push_back(L_R_raw.y());
-      temp_IMUData.push_back(L_R_raw.z());
-      temp_IMUData.push_back(L_P_raw.w());
-      temp_IMUData.push_back(L_P_raw.x());
-      temp_IMUData.push_back(L_P_raw.y());
-      temp_IMUData.push_back(L_P_raw.z());
+      // temp_IMUData.push_back(Back_raw.w());
+      // temp_IMUData.push_back(Back_raw.x());
+      // temp_IMUData.push_back(Back_raw.y());
+      // temp_IMUData.push_back(Back_raw.z());
+      // temp_IMUData.push_back(LS_raw.w());
+      // temp_IMUData.push_back(LS_raw.x());
+      // temp_IMUData.push_back(LS_raw.y());
+      // temp_IMUData.push_back(LS_raw.z());
+      // temp_IMUData.push_back(LA_raw.w());
+      // temp_IMUData.push_back(LA_raw.x());
+      // temp_IMUData.push_back(LA_raw.y());
+      // temp_IMUData.push_back(LA_raw.z());
+      // temp_IMUData.push_back(LH_raw.w());
+      // temp_IMUData.push_back(LH_raw.x());
+      // temp_IMUData.push_back(LH_raw.y());
+      // temp_IMUData.push_back(LH_raw.z());
+      // temp_IMUData.push_back(L_T_raw.w());
+      // temp_IMUData.push_back(L_T_raw.x());
+      // temp_IMUData.push_back(L_T_raw.y());
+      // temp_IMUData.push_back(L_T_raw.z());
+      // temp_IMUData.push_back(L_I_raw.w());
+      // temp_IMUData.push_back(L_I_raw.x());
+      // temp_IMUData.push_back(L_I_raw.y());
+      // temp_IMUData.push_back(L_I_raw.z());
+      // temp_IMUData.push_back(L_M_raw.w());
+      // temp_IMUData.push_back(L_M_raw.x());
+      // temp_IMUData.push_back(L_M_raw.y());
+      // temp_IMUData.push_back(L_M_raw.z());
+      // temp_IMUData.push_back(L_R_raw.w());
+      // temp_IMUData.push_back(L_R_raw.x());
+      // temp_IMUData.push_back(L_R_raw.y());
+      // temp_IMUData.push_back(L_R_raw.z());
+      // temp_IMUData.push_back(L_P_raw.w());
+      // temp_IMUData.push_back(L_P_raw.x());
+      // temp_IMUData.push_back(L_P_raw.y());
+      // temp_IMUData.push_back(L_P_raw.z());
 
-      temp_IMUData.push_back(RS_raw.w());
-      temp_IMUData.push_back(RS_raw.x());
-      temp_IMUData.push_back(RS_raw.y());
-      temp_IMUData.push_back(RS_raw.z());
-      temp_IMUData.push_back(RA_raw.w());
-      temp_IMUData.push_back(RA_raw.x());
-      temp_IMUData.push_back(RA_raw.y());
-      temp_IMUData.push_back(RA_raw.z());
-      temp_IMUData.push_back(RH_raw.w());
-      temp_IMUData.push_back(RH_raw.x());
-      temp_IMUData.push_back(RH_raw.y());
-      temp_IMUData.push_back(RH_raw.z());
-      temp_IMUData.push_back(R_T_raw.w());
-      temp_IMUData.push_back(R_T_raw.x());
-      temp_IMUData.push_back(R_T_raw.y());
-      temp_IMUData.push_back(R_T_raw.z());
-      temp_IMUData.push_back(R_I_raw.w());
-      temp_IMUData.push_back(R_I_raw.x());
-      temp_IMUData.push_back(R_I_raw.y());
-      temp_IMUData.push_back(R_I_raw.z());
-      temp_IMUData.push_back(R_M_raw.w());
-      temp_IMUData.push_back(R_M_raw.x());
-      temp_IMUData.push_back(R_M_raw.y());
-      temp_IMUData.push_back(R_M_raw.z());
-      temp_IMUData.push_back(R_R_raw.w());
-      temp_IMUData.push_back(R_R_raw.x());
-      temp_IMUData.push_back(R_R_raw.y());
-      temp_IMUData.push_back(R_R_raw.z());
-      temp_IMUData.push_back(R_P_raw.w());
-      temp_IMUData.push_back(R_P_raw.x());
-      temp_IMUData.push_back(R_P_raw.y());
-      temp_IMUData.push_back(R_P_raw.z());
+      // temp_IMUData.push_back(RS_raw.w());
+      // temp_IMUData.push_back(RS_raw.x());
+      // temp_IMUData.push_back(RS_raw.y());
+      // temp_IMUData.push_back(RS_raw.z());
+      // temp_IMUData.push_back(RA_raw.w());
+      // temp_IMUData.push_back(RA_raw.x());
+      // temp_IMUData.push_back(RA_raw.y());
+      // temp_IMUData.push_back(RA_raw.z());
+      // temp_IMUData.push_back(RH_raw.w());
+      // temp_IMUData.push_back(RH_raw.x());
+      // temp_IMUData.push_back(RH_raw.y());
+      // temp_IMUData.push_back(RH_raw.z());
+      // temp_IMUData.push_back(R_T_raw.w());
+      // temp_IMUData.push_back(R_T_raw.x());
+      // temp_IMUData.push_back(R_T_raw.y());
+      // temp_IMUData.push_back(R_T_raw.z());
+      // temp_IMUData.push_back(R_I_raw.w());
+      // temp_IMUData.push_back(R_I_raw.x());
+      // temp_IMUData.push_back(R_I_raw.y());
+      // temp_IMUData.push_back(R_I_raw.z());
+      // temp_IMUData.push_back(R_M_raw.w());
+      // temp_IMUData.push_back(R_M_raw.x());
+      // temp_IMUData.push_back(R_M_raw.y());
+      // temp_IMUData.push_back(R_M_raw.z());
+      // temp_IMUData.push_back(R_R_raw.w());
+      // temp_IMUData.push_back(R_R_raw.x());
+      // temp_IMUData.push_back(R_R_raw.y());
+      // temp_IMUData.push_back(R_R_raw.z());
+      // temp_IMUData.push_back(R_P_raw.w());
+      // temp_IMUData.push_back(R_P_raw.x());
+      // temp_IMUData.push_back(R_P_raw.y());
+      // temp_IMUData.push_back(R_P_raw.z());
 
 
-      temp_IMUData.push_back(-Left_ShoulderX_q);
-      temp_IMUData.push_back(Left_ShoulderY_q);
-      temp_IMUData.push_back(Left_Elbow_Z_q);
-      temp_IMUData.push_back(Left_Elbow_X_q);
-      temp_IMUData.push_back(Left_Wrist_Z_q);
-      temp_IMUData.push_back(Left_Wrist_Y_q);
-      temp_IMUData.push_back(-Left_Wrist_X_q);
+      // temp_IMUData.push_back(-Left_ShoulderX_q);
+      // temp_IMUData.push_back(Left_ShoulderY_q);
+      // temp_IMUData.push_back(Left_Elbow_Z_q);
+      // temp_IMUData.push_back(Left_Elbow_X_q);
+      // temp_IMUData.push_back(Left_Wrist_Z_q);
+      // temp_IMUData.push_back(Left_Wrist_Y_q);
+      // temp_IMUData.push_back(-Left_Wrist_X_q);
 
-      temp_IMUData.push_back(L_T_q);
-      temp_IMUData.push_back(L_I_q);
-      temp_IMUData.push_back(L_M_q);
-      temp_IMUData.push_back(L_R_q);
-      temp_IMUData.push_back(L_P_q);
+      // temp_IMUData.push_back(L_T_q);
+      // temp_IMUData.push_back(L_I_q);
+      // temp_IMUData.push_back(L_M_q);
+      // temp_IMUData.push_back(L_R_q);
+      // temp_IMUData.push_back(L_P_q);
 
-      temp_IMUData.push_back(-Right_ShoulderX_q);
-      temp_IMUData.push_back(Right_ShoulderY_q);
-      temp_IMUData.push_back(Right_Elbow_Z_q);
-      temp_IMUData.push_back(Right_Elbow_X_q);
-      temp_IMUData.push_back(Right_Wrist_Z_q);
-      temp_IMUData.push_back(Right_Wrist_Y_q);
-      temp_IMUData.push_back(-Right_Wrist_X_q);
+      // temp_IMUData.push_back(-Right_ShoulderX_q);
+      // temp_IMUData.push_back(Right_ShoulderY_q);
+      // temp_IMUData.push_back(Right_Elbow_Z_q);
+      // temp_IMUData.push_back(Right_Elbow_X_q);
+      // temp_IMUData.push_back(Right_Wrist_Z_q);
+      // temp_IMUData.push_back(Right_Wrist_Y_q);
+      // temp_IMUData.push_back(-Right_Wrist_X_q);
 
-      temp_IMUData.push_back(R_T_q);
-      temp_IMUData.push_back(R_I_q);
-      temp_IMUData.push_back(R_M_q);
-      temp_IMUData.push_back(R_R_q);
-      temp_IMUData.push_back(R_P_q);
+      // temp_IMUData.push_back(R_T_q);
+      // temp_IMUData.push_back(R_I_q);
+      // temp_IMUData.push_back(R_M_q);
+      // temp_IMUData.push_back(R_R_q);
+      // temp_IMUData.push_back(R_P_q);
+
+      for (int i = 0; i < imu_joint_angles.size(); ++i)
+        temp_IMUData.push_back(imu_joint_angles[i]) ;
+      for (int i = 0; i < 5; ++i)
+        temp_IMUData.push_back(imu_hand_anglesl[i]) ;
+      for (int i = 0; i < 5; ++i)
+        temp_IMUData.push_back(imu_hand_anglesr[i]) ;
+
+      temp_IMUData.push_back(0);
+      temp_IMUData.push_back(0);
+      temp_IMUData.push_back(0);
 
 
       IMUData.push_back(temp_IMUData);

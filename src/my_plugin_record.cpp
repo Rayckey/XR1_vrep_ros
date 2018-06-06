@@ -742,7 +742,7 @@ void MyPlugin::on_SaveIMU_clicked(){
 
           for (int i = 0 ; i < IMUData.size() ; i++) {
             for (int j = 0 ; j < IMUData[0].size() - 1; j++) {
-              out << IMUData[i][j] << " ";
+              out << IMUData[i][j] << ",";
             }
             out << IMUData[i][IMUData[0].size() - 1];
             out <<  endl;
