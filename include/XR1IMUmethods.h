@@ -40,6 +40,8 @@ private:
 
     Vector3d Matrix2ZXY(Eigen::Matrix3d input);
 
+    Vector3d Matrix2YXZ(Eigen::Matrix3d input);
+
     Vector3d Vector2XZ(Vector3d v);
 
     Vector3d Vector2YX(Vector3d v);
