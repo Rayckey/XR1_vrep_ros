@@ -90,19 +90,19 @@ void MyPlugin::setup_arm_joint_limit() {
 void MyPlugin::setup_hand_joint_limit() {
 
     hand_joint_lower_limit.push_back( 0.0);
-    hand_joint_upper_limit.push_back( 1.21);
+    hand_joint_upper_limit.push_back( 0.1);
 
     hand_joint_lower_limit.push_back( 0.0);
-    hand_joint_upper_limit.push_back( 1.00);
+    hand_joint_upper_limit.push_back( 0.1);
 
     hand_joint_lower_limit.push_back( 0.0);
-    hand_joint_upper_limit.push_back( 1.17);
+    hand_joint_upper_limit.push_back( 0.1);
 
     hand_joint_lower_limit.push_back( 0.0);
-    hand_joint_upper_limit.push_back( 1.20);
+    hand_joint_upper_limit.push_back( 0.1);
 
     hand_joint_lower_limit.push_back( 0.0);
-    hand_joint_upper_limit.push_back( 1.45);
+    hand_joint_upper_limit.push_back( 0.1);
 
 }
 
