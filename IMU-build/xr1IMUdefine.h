@@ -10,6 +10,7 @@ enum IMUs {
     Left_Arm_IMU =          3,
     Right_Shoulder_IMU =    4,
     Right_Arm_IMU =         5,
+    Head_IMU    =           6,
     Left_Hand_IMU =         7,
     Right_Hand_IMU =        8,
     Left_Thumb_IMU =            9,

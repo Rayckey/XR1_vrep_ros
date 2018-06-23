@@ -99,7 +99,7 @@ endif()
 
 include_directories(
  include
-
+ IMU-build
  ${CMAKE_CURRENT_BINARY_DIR}/..
   ${catkin_INCLUDE_DIRS}
 )

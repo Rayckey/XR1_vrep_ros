@@ -64,6 +64,8 @@ private:
 
     Matrix3d B_m;
 
+    Matrix3d H_m;
+
     std::vector<double> JointAngles;
 
     double PI;
