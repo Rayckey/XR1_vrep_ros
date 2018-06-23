@@ -236,18 +236,21 @@ void MyPlugin::play()
 
   generateActuatorDataHelper();
 
+
+  ROS_INFO("Generated Data");
   playing_switch = true;
 
 
 
   Path_Ex_Timer->stop();
-
+  ROS_INFO("Stopped Timer");
   Path_idx = 0;
 
   OmniPositions[0] = 0.0;
   OmniPositions[1] = 0.0;
   OmniPositions[2] = 0.0;
   Path_Ex_Timer->start(10);
+    ROS_INFO("Started Timer");
 
 
 

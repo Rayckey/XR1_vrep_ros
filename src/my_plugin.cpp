@@ -171,7 +171,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
     connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
 
 
-  // OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);
+  OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);
 
 
 }
