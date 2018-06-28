@@ -192,83 +192,15 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
 
 
-  // OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);
+  OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);
 
 
 
 
 
+  gettingIMUStarted() ;
 
 
-
-
-
-
-  //--------------------------------------------------------------------------------------
-
-  XR1IMUptr = new XR1IMUmethods();
-
-  int stuff = 0 ;
-
-  ActuatorController::initController(stuff, 0);
-
-  ptr_AC = ActuatorController::getInstance();
-
-  ptr_AC->autoRecoginze();
-
-
-  QTimer * QuaTimer = new QTimer;
-
-  connect(QuaTimer , &QTimer::timeout , this , &MyPlugin::quatimercallback);
-  QuaTimer->start(30);
-
-  ptr_AC->m_sQuaternion.connect_member(this , &MyPlugin::quaternioncallback);
-
-  ConvertTimer = new QTimer;
-
-  connect(ConvertTimer , &QTimer::timeout , this , &MyPlugin::quaterion2joint);
-
-
-
-  connect(ui_.InitIMU , &QPushButton::clicked, this , &MyPlugin::on_InitIMU_clicked);
-
-  // FigureGearRatios = 1.0 + 54.0 / 45.0 + 54.0 * 54.0 / 45.0 / 45.0;
-
-  // ThumbGearRatio = 1.0 + 54.0 / 45.0;
-
-  connect(ui_.CollectIMU , &QPushButton::clicked , this , &MyPlugin::on_CollectIMU_clicked);
-  connect(ui_.SaveIMU , &QPushButton::clicked , this , &MyPlugin::on_SaveIMU_clicked);
-
-
-
-
-  //-------------------------------------------------------------------------------
-
-
-  // Left_ShoulderX_q = 0;
-  // Left_ShoulderY_q = 0;
-  // Left_Elbow_Z_q = 0;
-  // Left_Elbow_X_q = 0;
-  // Left_Wrist_Y_q = 0;
-  // Left_Wrist_X_q = 0;
-  // Left_Wrist_Z_q = 0;
-  // L_I_q = 0;
-  // L_T_q = 0;
-  // L_R_q = 0;
-  // L_P_q = 0;
-  // L_M_q = 0;
-  // Right_ShoulderX_q = 0;
-  // Right_ShoulderY_q = 0;
-  // Right_Elbow_Z_q = 0;
-  // Right_Elbow_X_q = 0;
-  // Right_Wrist_Y_q = 0;
-  // Right_Wrist_X_q = 0;
-  // Right_Wrist_Z_q = 0;
-  // R_I_q = 0;
-  // R_T_q = 0;
-  // R_R_q = 0;
-  // R_P_q = 0;
-  // R_M_q = 0;
 
 
 }
@@ -700,85 +632,6 @@ void MyPlugin::onJointRotationVisualizationFinish() {
   JointVisualizationPublisher.publish(msg);
 }
 
-void MyPlugin::on_InitIMU_clicked()
-{
-  XR1IMUptr->Initialize();
-
-  ConvertTimer->stop();
-  ConvertTimer->start(50);
-}
-
-void MyPlugin::quatimercallback()
-{
-  // ROS_INFO("Requesting !!!!");
-  ptr_AC->requestAllQuaternions();
-}
-
-
-void MyPlugin::quaternioncallback(uint8_t id , double w, double x , double y , double z) {
-
-  XR1IMUptr->quaternioncallback( id ,  w,  x ,  y ,  z);
-}
-
-
-
-void MyPlugin::quaterion2joint() {
-
-
-  XR1IMUptr->quaterion2joint();
-
-  std::vector<double> angles = XR1IMUptr->getJointAngles();
-
-
-  if (ui_.tabWidget->currentIndex() == 7) {
-
-    std::vector<double> imu_joint_angles;
-
-    for (int i = XR1IMU::Knee_X ; i <= XR1IMU::Right_Wrist_X ; i++)
-      imu_joint_angles.push_back(angles[i]);
-
-    JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(imu_joint_angles));
-
-    double imu_hand_anglesl[5];
-
-    for (int i = XR1IMU::Left_Thumb ; i <= XR1IMU::Left_Pinky ; i++)
-      imu_hand_anglesl[i- XR1IMU::Left_Thumb] = angles[i];
-
-
-    LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(imu_hand_anglesl));
-
-    double imu_hand_anglesr[5];
-
-
-    for (int i = XR1IMU::Right_Thumb ; i <= XR1IMU::Right_Pinky ; i++)
-      imu_hand_anglesr[i-XR1IMU::Right_Thumb] = angles[i];
-
-    RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(imu_hand_anglesr));
-
-
-    if (CollectIMUSwitch) {
-
-      std::vector<double> temp_IMUData;
-
-      for (int i = 0; i < imu_joint_angles.size(); ++i)
-        temp_IMUData.push_back(imu_joint_angles[i]) ;
-      for (int i = 0; i < 5; ++i)
-        temp_IMUData.push_back(imu_hand_anglesl[i]) ;
-      for (int i = 0; i < 5; ++i)
-        temp_IMUData.push_back(imu_hand_anglesr[i]) ;
-
-      temp_IMUData.push_back(0);
-      temp_IMUData.push_back(0);
-      temp_IMUData.push_back(0);
-
-
-      IMUData.push_back(temp_IMUData);
-
-    }
-
-  }
-
-}
 
 } // namespace
 

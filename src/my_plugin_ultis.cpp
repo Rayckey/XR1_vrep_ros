@@ -2,7 +2,6 @@
 #include <pluginlib/class_list_macros.h>
 #include <QStringList>
 #include "ros/ros.h"
-#include "XR1.h"
 #include <QTimer>
 #include <QMessageBox>
 #include <QLabel>

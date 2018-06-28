@@ -72,15 +72,16 @@ CATKIN_DEPENDS roscpp rqt_gui_cpp std_msgs message_runtime cv_bridge geometry_ms
 set (vrep_test_SRCS
   src/ratio_layouted_frame.cpp
   src/my_plugin.cpp
-  src/XR1.cpp
+
   src/my_plugin_ultis.cpp
   src/my_plugin_record.cpp
+  src/IMU_example.cpp
 )
 
 set(vrep_test_HDRS
   include/ratio_layouted_frame.h
   include/my_plugin.h
-  include/XR1.h
+
 )
 
 set(vrep_test_UIS

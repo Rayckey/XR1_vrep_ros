@@ -1,15 +1,4 @@
 #include "my_plugin.h"
-#include <pluginlib/class_list_macros.h>
-#include <QStringList>
-#include "ros/ros.h"
-#include "XR1.h"
-#include <QTimer>
-#include <QMessageBox>
-#include <QLabel>
-#include <QGroupBox>
-#include <QFile>
-#include <QTime>
-#include <QTextStream>
 
 
 
@@ -162,16 +151,16 @@ void MyPlugin::Path_Ex_Fun() {
 
   std::vector<double> handtargetPosition;
 
-  for (int i = 21 ; i < temp_angles.size() - 3 ; i++)
+  for (int i = 21 ; i < 31 ; i++)
     handtargetPosition.push_back(temp_angles[i]);
 
   updateTargetSlider(targetPosition, handtargetPosition);
 
   // JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
 
-  OmniPositions[0] += temp_angles[temp_angles.size() - 3] * 0.01;
-  OmniPositions[1] += temp_angles[temp_angles.size() - 2] * 0.01;
-  OmniPositions[2] += temp_angles[temp_angles.size() - 1] * 0.01;
+  OmniPositions[0] += temp_angles[31] * 0.01;
+  OmniPositions[1] += temp_angles[32] * 0.01;
+  OmniPositions[2] += temp_angles[33] * 0.01;
 
   //  geometry_msgs::Twist msg;
 
@@ -712,49 +701,6 @@ void MyPlugin::addOmniAction(std::vector<double> OmniAction) {
   m_ActionsOmni.push_back(OmniAction);
 }
 
-void MyPlugin::on_CollectIMU_clicked(){
-  CollectIMUSwitch = !CollectIMUSwitch;
-}
-
-
-void MyPlugin::on_SaveIMU_clicked(){
-
-  if (IMUData.size()) {
-    QFileDialog dialog(0, tr("Save IMU Data"), QDir::currentPath());
-    dialog.setFileMode(QFileDialog::AnyFile);
-    dialog.setAcceptMode(QFileDialog::AcceptSave);
-    dialog.setNameFilter(tr("justtext(*.txt)"));
-
-    if (dialog.exec() == QDialog::Accepted)
-    {
-      QString path = dialog.selectedFiles().first();
-      if (path.size() > 0)
-      {
-
-        if (!path.endsWith(".txt"))
-        {
-          path += ".txt";
-        }
-        QFile file(path);
-        if (file.open(QFile::WriteOnly | QFile::Text | QFile::Truncate))
-        {
-          QTextStream out(&file);
-
-          for (int i = 0 ; i < IMUData.size() ; i++) {
-            for (int j = 0 ; j < IMUData[0].size() - 1; j++) {
-              out << IMUData[i][j] << ",";
-            }
-            out << IMUData[i][IMUData[0].size() - 1];
-            out <<  endl;
-          }
-        }
-        file.close();
-      }
-    }
-  }
-
-
-}
 
 } // namespace
 

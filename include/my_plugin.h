@@ -14,8 +14,7 @@
 #include "vrep_test/JointCurrent.h"
 #include <QVector>
 #include <QTimer>
-#include "std_msgs/Bool.h"
-#include "XR1.h"
+
 #include <tf2_ros/transform_broadcaster.h>
 
 #include <image_transport/image_transport.h>
@@ -34,7 +33,6 @@
 #include "std_msgs/Bool.h"
 #include "std_msgs/Int32.h"
 #include "vrep_test/InertiaPara.h"
-#include "XR1.h"
 #include "geometry_msgs/Twist.h"
 #include <QMessageBox>
 #include <QLabel>
@@ -46,7 +44,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <opencv2/imgproc/imgproc.hpp>
 #include "rosbag/bag.h"
-#include <tf2_ros/transform_broadcaster.h>
+
 #include <QListWidget>
 #include <QFileDialog>
 #include <QXmlStreamWriter>
@@ -54,6 +52,7 @@
 
 #include "Eigen/Dense"
 #include "Eigen/Geometry"
+
 #include "actuatorcontroller.h"
 #include "xr1IMUdefine.h"
 #include "XR1IMUmethods.h"
@@ -87,6 +86,9 @@ public:
   //void triggerConfiguration();
 
   XR1IMUmethods * XR1IMUptr;
+
+
+
 
 protected:
   void callbackImage(const sensor_msgs::Image::ConstPtr& msg);
@@ -129,6 +131,14 @@ protected slots:
   void readAction();
   void saveAction();
   void generateActuatorData();
+
+
+
+    void gettingIMUStarted() ;
+
+  std::vector<std::vector<double> > saveIMUHelper() ;
+
+
 private:
   void clearAction();
   void addAction(std::vector<double> & position, double time, QString actionName);
@@ -162,7 +172,7 @@ private:
   ros::Subscriber JointCurrentPositionSubscriber;
   ros::ServiceClient InertiaParaClient;
   ros::ServiceClient CurrentClient;
-  XR1 * ptr_XR1;
+
   std::vector<double> currentPosition;
   image_transport::Subscriber CameraSubscriber;
   QVector<QLabel *> currentPositionLabels;
