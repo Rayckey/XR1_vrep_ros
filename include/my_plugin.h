@@ -139,6 +139,9 @@ protected slots:
   std::vector<std::vector<double> > saveIMUHelper() ;
 
 
+  void on_ClearIMU_clicked();
+
+
 private:
   void clearAction();
   void addAction(std::vector<double> & position, double time, QString actionName);

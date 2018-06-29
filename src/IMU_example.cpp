@@ -11,7 +11,7 @@ void MyPlugin::gettingIMUStarted() {
 
 
 
- ROS_INFO("Calling IMU Library");
+  ROS_INFO("Calling IMU Library");
   //Getting the IMU library ready
   XR1IMUptr = new XR1IMUmethods();
 
@@ -28,7 +28,7 @@ void MyPlugin::gettingIMUStarted() {
   ptr_AC->autoRecoginze();
 
 
- 
+
 
 
   ROS_INFO("Setting IMU Timers");
@@ -36,7 +36,7 @@ void MyPlugin::gettingIMUStarted() {
   //Currently, the fastest rate is close to 30 Hz avoid to avoid request conflict
   QTimer * QuaTimer = new QTimer;
   connect(QuaTimer , &QTimer::timeout , this , &MyPlugin::quatimercallback);
-  QuaTimer->start(30);
+  QuaTimer->start(40);
 
 
   //Connect the Actuator Controller Signal to a member function
@@ -59,6 +59,11 @@ void MyPlugin::gettingIMUStarted() {
 
   // This Button saves the recording
   connect(ui_.SaveIMU , &QPushButton::clicked , this , &MyPlugin::on_SaveIMU_clicked);
+
+
+
+  // Clears the data if you don't want it 
+  connect(ui_.ClearIMU , &QPushButton::clicked , this , &MyPlugin::on_ClearIMU_clicked);
 }
 
 
@@ -215,7 +220,10 @@ void MyPlugin::on_SaveIMU_clicked() {
 }
 
 
-
+void MyPlugin::on_ClearIMU_clicked(){
+  while (!IMUData.empty())
+    IMUData.pop_back();
+}
 
 
 std::vector<std::vector<double> > MyPlugin::saveIMUHelper() {
@@ -223,19 +231,39 @@ std::vector<std::vector<double> > MyPlugin::saveIMUHelper() {
   std::vector<std::vector<double> > res;
 
 
-  static const double steps = 5.0;
+  
 
   if (IMUData.size()) {
 
 
-    res.push_back(IMUData[0]);
+    for (int i = 0 ; i <= IMUData.size() ; i++) {
 
 
-    for (int i = 1 ; i < IMUData.size() ; i++) {
+      ROS_INFO("Recording Step [%d]"  , i);
 
-      std::vector<double> goal_position = IMUData[i];
+      std::vector<double> goal_position;
 
-      std::vector<double> start_position = IMUData[i - 1];
+      double steps = 5.0;
+
+      if ( i == IMUData.size() ) {
+        while (goal_position.size() < IMUData[0].size())
+          goal_position.push_back(0);
+
+        steps = 50;
+      }
+      else
+        goal_position = IMUData[i];
+
+      std::vector<double> start_position ;
+
+      if ( i == 0 ) {
+        while (start_position.size() < goal_position.size())
+          start_position.push_back(0);
+        steps = 50;
+      }
+
+      else
+        start_position = IMUData[i - 1];
 
       std::vector<double> increments;
 
@@ -256,7 +284,7 @@ std::vector<std::vector<double> > MyPlugin::saveIMUHelper() {
 
       }
 
-      res.push_back(IMUData[i]);
+      res.push_back(goal_position);
     }
 
   }

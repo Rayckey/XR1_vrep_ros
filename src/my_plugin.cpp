@@ -172,7 +172,6 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
 
 
 
-
   // Emergency Dance
 
   connect(ui_.Dance_Button, SIGNAL(clicked()) , this , SLOT(onDance_ButtonClicked()));
@@ -631,6 +630,9 @@ void MyPlugin::onJointRotationVisualizationFinish() {
   msg.data = -1;
   JointVisualizationPublisher.publish(msg);
 }
+
+
+
 
 
 } // namespace
