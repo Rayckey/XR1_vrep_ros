@@ -587,6 +587,8 @@ void MyPlugin::updateTargetSlider(std::vector<double> v , std::vector<double> u)
 
 
 
+
+
 void MyPlugin::generateActuatorDataHelper() {
 
   while (GeneratedConfiguration.size() > 0) GeneratedConfiguration.pop_back();
@@ -595,10 +597,18 @@ void MyPlugin::generateActuatorDataHelper() {
 
   while ( currentidx < ui_.actionList->count()) {
 
+    double time = m_ActionsTimes.at(currentidx);
+
+    int steps;
+
+    steps = floor(time * 1000 / 10);
+
+    double double_index;
+
 
     //For all the major joints
     std::vector<double> goal_position = m_Actions.at(currentidx);
-    double time = m_ActionsTimes.at(currentidx);
+
 
     std::vector<double> start_position;
 
@@ -609,21 +619,18 @@ void MyPlugin::generateActuatorDataHelper() {
         start_position.push_back(0.0);
     }
 
-    int steps;
 
-    steps = floor(time * 1000 / 10);
+    std::vector<double> pt_1s = start_position;
+
+    std::vector<double> pt_2s = goal_position;
 
     std::vector<double> increments;
-
-    for (int i = 0 ; i < start_position.size() ; i++) {
-      increments.push_back((goal_position[i] - start_position[i]) / (double)steps);
-    }
-
 
 
     //For all the hand joints
     std::vector<double> start_hand_position;
     std::vector<double> goal_hand_position = m_ActionsHands.at(currentidx);
+
 
     if (currentidx >  0) {
       start_hand_position = m_ActionsHands.at(currentidx - 1);
@@ -632,11 +639,15 @@ void MyPlugin::generateActuatorDataHelper() {
       while (start_hand_position.size() < goal_hand_position.size())
         start_hand_position.push_back(0.0);
     }
+
+    std::vector<double> pt_1s_hands = start_hand_position;
+
+    std::vector<double> pt_2s_hands = goal_hand_position;
+
     std::vector<double> increments_hands;
 
-
     for (int i = 0 ; i < start_hand_position.size() ; i++) {
-      increments_hands.push_back((goal_hand_position[i] - start_hand_position[i]) / (double)steps);
+      increments_hands.push_back(0.0);
     }
 
 
@@ -652,26 +663,43 @@ void MyPlugin::generateActuatorDataHelper() {
       while (start_vel.size() < goal_vel.size())
         start_vel.push_back(0.0);
     }
+
+    std::vector<double> pt_1s_vel = start_vel;
+
+    std::vector<double> pt_2s_vel = goal_vel;
+
     std::vector<double> increments_vel;
 
 
+
     for (int i = 0 ; i < start_vel.size() ; i++) {
-      increments_vel.push_back((goal_vel[i] - start_vel[i]) / (double)steps);
+      increments_vel.push_back(0.0);
     }
 
 
 
+
     // saving data
-    for (int i = 1 ; i < steps + 1 ; i++) {
+    for (int i = 0 ; i < steps + 1 ; i++) {
+
+      double_index = double(i)/double(steps);
+
       std::vector<double> temp_res;
-      for (int j = 0 ; j < goal_position.size() ; j++)
-        temp_res.push_back(increments[j] * (double)i + start_position[j]) ;
+      for (int j = 0 ; j < goal_position.size() ; j++){
 
-      for (int j = 0 ; j < goal_hand_position.size() ; j++)
-        temp_res.push_back(increments_hands[j] * (double)i + start_hand_position[j]) ;
+        temp_res.push_back(tinyBezier( double_index , start_position[j] ,  pt_1s[j] , pt_2s[j] , goal_position[j])) ;
 
-      for (int j = 0 ; j < goal_vel.size() ; j++)
-        temp_res.push_back(increments_vel[j] * (double)i + start_vel[j]) ;
+      }
+
+      for (int j = 0 ; j < goal_hand_position.size() ; j++){
+
+        temp_res.push_back(tinyBezier( double_index , start_hand_position[j] ,  pt_1s_hands[j] , pt_2s_hands[j] , goal_hand_position[j])) ;
+      }
+
+      for (int j = 0 ; j < goal_vel.size() ; j++){
+
+        temp_res.push_back(tinyBezier( double_index , start_vel[j] ,  pt_1s_vel[j] , pt_2s_vel[j] , goal_vel[j])) ;
+      }
 
       GeneratedConfiguration.push_back(temp_res);
     }
@@ -681,6 +709,16 @@ void MyPlugin::generateActuatorDataHelper() {
 
 
 }
+
+
+double MyPlugin::tinyBezier(double double_index , double pt_s , double pt_1 , double pt_2 , double pt_e){
+
+        return pow( (1.0 - double_index) , 3.0) * pt_s + 
+                    3.0 * pow( (1.0 - double_index) , 2.0) *  double_index * pt_1 + 
+                    3.0 * (1.0 - double_index) *  pow(double_index ,2.0) * pt_2 +
+                    pow(double_index ,3.0) * pt_e;
+}
+
 
 
 std::vector<double> MyPlugin::getHandTargetPositions() {
