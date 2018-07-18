@@ -532,7 +532,7 @@ void MyPlugin::clearAction()
 
 void MyPlugin::updateTargetSlider(std::vector<double> v , std::vector<double> u) {
   for (int i = 0; i < targetPositionSliders.size(); i++) {
-    targetPositionSliders[i]->setValue((int) ((v[i] - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * 100 ));
+    targetPositionSliders[i]->setValue((int) ((v[i] - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * sliderSlices ));
   }
 
   double left_hand_temp[5]; double right_hand_temp[5];

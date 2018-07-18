@@ -157,6 +157,7 @@ private:
   QVector<QSlider *> targetPositionSliders;
   QVector<QVector<QSlider *> > HandPositionSliders;
   QVector<QDoubleSpinBox  *> targetPositionSpinBox;
+  double sliderSlices;
   QTimer *JointCurrentPositionTimer;
   QString arg_topic_name;
   bool pub_topic_custom_;

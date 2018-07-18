@@ -24,6 +24,8 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   ROS_INFO("Loading vrep_test plugin !");
   Path_idx = 0;
 
+  sliderSlices = 1000.;
+
   // access standalone command line arguments
   QStringList argv = context.argv();
   // create QWidget
@@ -66,8 +68,8 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   // Set up all the sliders for each joint
   for (int i = 0 ; i < joint_lower_limit.size() ; i++) {
     targetPositionSliders[i]->setMinimum(0);
-    targetPositionSliders[i]->setMaximum(100);
-    targetPositionSliders[i]->setValue(floor((0.0 - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * 100));
+    targetPositionSliders[i]->setMaximum((int)sliderSlices);
+    targetPositionSliders[i]->setValue(floor((0.0 - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * sliderSlices));
   }
 
 
@@ -79,10 +81,10 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   for (int i = 0 ; i < hand_joint_lower_limit.size() ; i++) {
     HandPositionSliders[0][i]->setMinimum(0);
     HandPositionSliders[0][i]->setMaximum(100);
-    HandPositionSliders[0][i]->setValue(floor((0.0 - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100));
+    HandPositionSliders[0][i]->setValue(floor((0.0 - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100.));
     HandPositionSliders[1][i]->setMinimum(0);
     HandPositionSliders[1][i]->setMaximum(100);
-    HandPositionSliders[1][i]->setValue(floor((0.0 - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100));
+    HandPositionSliders[1][i]->setValue(floor((0.0 - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100.));
 
   }
 
@@ -219,14 +221,14 @@ void MyPlugin::JointCurrentPositionRefresher() {
   for (int i = 0; i < currentPosition.size(); i++) {
     currentPositionLabels[i]->setText(QString::number(currentPosition[i], 'g', 3));
     if (ui_.tabWidget->currentIndex() == 5 )
-      targetPositionSliders[i]->setValue((int) ((currentPosition[i] - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * 100 ));
+      targetPositionSliders[i]->setValue((int) ((currentPosition[i] - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * sliderSlices ));
   }
 }
 
 void MyPlugin::onJointTargetPositionChanged(int i) {
   std::vector<double> targetPosition;
   for (int i = 0; i < targetPositionSliders.size(); i++) {
-    targetPosition.push_back((double)targetPositionSliders[i]->value() / 100. * ( joint_upper_limit[i] - joint_lower_limit[i]) + joint_lower_limit[i] );
+    targetPosition.push_back((double)targetPositionSliders[i]->value() / sliderSlices* ( joint_upper_limit[i] - joint_lower_limit[i]) + joint_lower_limit[i] );
     targetPositionLabels[i]->setText(QString::number(targetPosition.back(), 'g', 3));
   }
   if (ui_.tabWidget->currentIndex() != 5  && !playing_switch )JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
@@ -323,7 +325,7 @@ void MyPlugin::onZero() {
 
   // Set up all the sliders for each joint
   for (int i = 0 ; i < joint_lower_limit.size() ; i++) {
-    targetPositionSliders[i]->setValue(floor((0.0 - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * 100));
+    targetPositionSliders[i]->setValue(floor((0.0 - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * sliderSlices));
   }
 
   for (int i = 0 ; i < hand_joint_lower_limit.size() ; i++) {
