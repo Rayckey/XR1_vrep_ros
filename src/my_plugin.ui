@@ -190,7 +190,7 @@
       <item row="1" column="1">
        <widget class="QSlider" name="Body_T_S_1">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -210,7 +210,7 @@
       <item row="0" column="1">
        <widget class="QSlider" name="Body_T_S_0">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -223,7 +223,7 @@
       <item row="2" column="1">
        <widget class="QSlider" name="Body_T_S_2">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -312,7 +312,7 @@
       <item row="5" column="1">
        <widget class="QSlider" name="Body_T_S_5">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -384,7 +384,7 @@
       <item row="4" column="1">
        <widget class="QSlider" name="Body_T_S_4">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -442,7 +442,7 @@
       <item row="3" column="1">
        <widget class="QSlider" name="Body_T_S_3">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -462,7 +462,7 @@
       <item row="6" column="1">
        <widget class="QSlider" name="Body_T_S_6">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -575,7 +575,7 @@
       <item row="0" column="1">
        <widget class="QSlider" name="Left_Arm_T_S_0">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -678,7 +678,7 @@
       <item row="4" column="1">
        <widget class="QSlider" name="Left_Arm_T_S_4">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -710,7 +710,7 @@
       <item row="1" column="1">
        <widget class="QSlider" name="Left_Arm_T_S_1">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -768,7 +768,7 @@
       <item row="3" column="1">
        <widget class="QSlider" name="Left_Arm_T_S_3">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -814,7 +814,7 @@
       <item row="5" column="1">
        <widget class="QSlider" name="Left_Arm_T_S_5">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -846,7 +846,7 @@
       <item row="2" column="1">
        <widget class="QSlider" name="Left_Arm_T_S_2">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -885,7 +885,7 @@
       <item row="6" column="1">
        <widget class="QSlider" name="Left_Arm_T_S_6">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -960,7 +960,7 @@
       <item row="5" column="1">
        <widget class="QSlider" name="Right_Arm_T_S_5">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -1082,7 +1082,7 @@
       <item row="0" column="1">
        <widget class="QSlider" name="Right_Arm_T_S_0">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -1166,7 +1166,7 @@
       <item row="1" column="1">
        <widget class="QSlider" name="Right_Arm_T_S_1">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -1198,7 +1198,7 @@
       <item row="3" column="1">
        <widget class="QSlider" name="Right_Arm_T_S_3">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -1211,7 +1211,7 @@
       <item row="4" column="1">
        <widget class="QSlider" name="Right_Arm_T_S_4">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -1243,7 +1243,7 @@
       <item row="2" column="1">
        <widget class="QSlider" name="Right_Arm_T_S_2">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>
@@ -1308,7 +1308,7 @@
       <item row="6" column="1">
        <widget class="QSlider" name="Right_Arm_T_S_6">
         <property name="maximum">
-         <number>1000</number>
+         <number>10000</number>
         </property>
         <property name="sliderPosition">
          <number>50</number>

@@ -24,7 +24,7 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   ROS_INFO("Loading vrep_test plugin !");
   Path_idx = 0;
 
-  sliderSlices = 1000.;
+  sliderSlices = 10000.;
 
   // access standalone command line arguments
   QStringList argv = context.argv();
@@ -317,6 +317,10 @@ void MyPlugin::onPauseButtonClicked() {
 }
 
 void MyPlugin::onZero() {
+
+
+  playing_switch = true;
+
   // Zero function doing what zeroing functioins do
   for (int i = 0 ; i < currentPositionLabels.size(); i++) currentPositionLabels[i]->setText("0.0");
   for (int i = 0 ; i < targetPositionLabels.size(); i++) targetPositionLabels[i]->setText("0.0");
@@ -349,6 +353,11 @@ void MyPlugin::onZero() {
   targetPositionSpinBox[9]->setValue(0.0);
   targetPositionSpinBox[10]->setValue(0.0);
   targetPositionSpinBox[11]->setValue(0.0);
+
+
+  playing_switch = false;
+
+  
 }
 
 

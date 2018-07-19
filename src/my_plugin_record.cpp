@@ -608,7 +608,13 @@ void MyPlugin::generateActuatorDataHelper() {
 
 
     //For all the major joints
-    std::vector<double> goal_position = m_Actions.at(currentidx);
+    std::vector<double> goal_position;
+
+    if (currentidx == ui_.actionList->count() -1 ) 
+      while (goal_position.size() < m_Actions.at(currentidx).size())
+        goal_position.push_back(0.0);
+    else 
+      goal_position = m_Actions.at(currentidx);
 
 
     std::vector<double> start_position;
