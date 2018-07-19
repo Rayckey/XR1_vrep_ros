@@ -36,7 +36,7 @@ void MyPlugin::gettingIMUStarted() {
   //Currently, the fastest rate is close to 30 Hz avoid to avoid request conflict
   QTimer * QuaTimer = new QTimer;
   connect(QuaTimer , &QTimer::timeout , this , &MyPlugin::quatimercallback);
-  QuaTimer->start(40);
+  QuaTimer->start(50);
 
 
   //Connect the Actuator Controller Signal to a member function
@@ -108,9 +108,6 @@ void MyPlugin::quaternioncallback(uint8_t id , double w, double x , double y , d
 
 
 void MyPlugin::quaterion2joint() {
-
-  //This triggers the calculation
-  XR1IMUptr->quaterion2joint();
 
 
   //Now you get the joint angles from them
@@ -265,11 +262,6 @@ std::vector<std::vector<double> > MyPlugin::saveIMUHelper() {
       else
         start_position = IMUData[i - 1];
 
-      std::vector<double> increments;
-
-      for (int i = 0 ; i < start_position.size() ; i++) {
-        increments.push_back((goal_position[i] - start_position[i]) / steps);
-      }
 
 
       for (int i = 1 ; i < steps ; i++) {
@@ -277,7 +269,7 @@ std::vector<std::vector<double> > MyPlugin::saveIMUHelper() {
         std::vector<double> intermediate_position;
 
         for (int j = 0 ; j < start_position.size() ; j++) {
-          intermediate_position.push_back( start_position[j] + increments[j] * (double)i );
+          intermediate_position.push_back(tinyBezier ((double)i/steps,  start_position[j] , start_position[j]  , goal_position[j] , goal_position[j] ) );
         }
 
         res.push_back(intermediate_position);
@@ -292,6 +284,18 @@ std::vector<std::vector<double> > MyPlugin::saveIMUHelper() {
 
   return res;
 }
+
+
+
+double MyPlugin::tinyBezier(double double_index , double pt_s , double pt_1 , double pt_2 , double pt_e){
+
+        return pow( (1.0 - double_index) , 3.0) * pt_s + 
+                    3.0 * pow( (1.0 - double_index) , 2.0) *  double_index * pt_1 + 
+                    3.0 * (1.0 - double_index) *  pow(double_index ,2.0) * pt_2 +
+                    pow(double_index ,3.0) * pt_e;
+}
+
+
 
 } // namespace
 

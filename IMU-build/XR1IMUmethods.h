@@ -18,8 +18,6 @@ public:
 
     void quaternioncallback(u_int8_t id , double w, double x, double y , double z );
 
-    void quaterion2joint();
-
 
 
 private:
@@ -48,7 +46,9 @@ private:
 
     Vector3d FingerVector2YX(Vector3d v);
 
-    double EasyFilter(double u, double v);
+    double EasyFilter(double u, double v, double filter_ratio  = 0.5);
+
+    double tinyCurvefit(double double_index , double pt_s , double pt_1 , double pt_2 , double pt_e);
 
     std::vector<Quaterniond> Init_qs;
 
@@ -73,6 +73,7 @@ private:
     double Finger_Ratios;
 
     double Thumb_Ratios;
+
 };
 
 #endif // XR1IMUMETHODS_H

@@ -292,6 +292,9 @@ private slots:
 
   double EasyKalman(double u, double v);
 
+
+  double tinyBezier(double double_index , double pt_s , double pt_1 , double pt_2 , double pt_e);
+
 }; //class
 } // namespace
 #endif // my_namespace__my_plugin_H
