@@ -3,27 +3,27 @@
     <newAction0>
         <Time>5</Time>
         <Count>21</Count>
-        <Pose0>-0.39232</Pose0>
-        <Pose1>-0.39232</Pose1>
-        <Pose2>-0.39232</Pose2>
-        <Pose3>-0.39232</Pose3>
-        <Pose4>-0.39232</Pose4>
-        <Pose5>-0.39232</Pose5>
-        <Pose6>-0.39232</Pose6>
+        <Pose0>2.1627</Pose0>
+        <Pose1>2.1627</Pose1>
+        <Pose2>2.1627</Pose2>
+        <Pose3>2.1627</Pose3>
+        <Pose4>2.1627</Pose4>
+        <Pose5>2.1627</Pose5>
+        <Pose6>2.1627</Pose6>
         <Pose7>-2.48019e-06</Pose7>
         <Pose8>-0.00187963</Pose8>
-        <Pose9>-0.3768</Pose9>
+        <Pose9>-0.35796</Pose9>
         <Pose10>-0.000199708</Pose10>
-        <Pose11>-0.39232</Pose11>
-        <Pose12>-0.39232</Pose12>
-        <Pose13>-0.39232</Pose13>
-        <Pose14>-1.48778e-06</Pose14>
-        <Pose15>-0.0187995</Pose15>
-        <Pose16>1.92247e-23</Pose16>
-        <Pose17>-0.000199725</Pose17>
-        <Pose18>-0.39232</Pose18>
-        <Pose19>-0.39232</Pose19>
-        <Pose20>-0.39232</Pose20>
+        <Pose11>2.1627</Pose11>
+        <Pose12>2.1627</Pose12>
+        <Pose13>2.1627</Pose13>
+        <Pose14>-1.52945e-06</Pose14>
+        <Pose15>-0.000188017</Pose15>
+        <Pose16>1.12958e-23</Pose16>
+        <Pose17>-0.000199707</Pose17>
+        <Pose18>2.1627</Pose18>
+        <Pose19>2.1627</Pose19>
+        <Pose20>2.1627</Pose20>
         <Count>10</Count>
         <HandPose0>0</HandPose0>
         <HandPose1>0</HandPose1>
@@ -1243,27 +1243,27 @@
     <newAction31>
         <Time>15</Time>
         <Count>21</Count>
-        <Pose0>-2.01489</Pose0>
-        <Pose1>-2.01489</Pose1>
-        <Pose2>-2.01489</Pose2>
-        <Pose3>-2.01489</Pose3>
-        <Pose4>-2.01489</Pose4>
-        <Pose5>-2.01489</Pose5>
-        <Pose6>-2.01489</Pose6>
-        <Pose7>-2.48019e-06</Pose7>
+        <Pose0>-0.849801</Pose0>
+        <Pose1>-0.849801</Pose1>
+        <Pose2>-0.849801</Pose2>
+        <Pose3>-0.849801</Pose3>
+        <Pose4>-0.849801</Pose4>
+        <Pose5>-0.849801</Pose5>
+        <Pose6>-0.849801</Pose6>
+        <Pose7>-2.48022e-06</Pose7>
         <Pose8>-0.00187963</Pose8>
-        <Pose9>1.52587e-23</Pose9>
+        <Pose9>2.81897e-13</Pose9>
         <Pose10>-0.000199708</Pose10>
-        <Pose11>-2.01489</Pose11>
-        <Pose12>-2.01489</Pose12>
-        <Pose13>-2.01489</Pose13>
-        <Pose14>-1.45103e-06</Pose14>
-        <Pose15>-0.0187993</Pose15>
-        <Pose16>2.28147e-23</Pose16>
-        <Pose17>-0.00019978</Pose17>
-        <Pose18>-2.01489</Pose18>
-        <Pose19>-2.01489</Pose19>
-        <Pose20>-2.01489</Pose20>
+        <Pose11>-0.849801</Pose11>
+        <Pose12>-0.849801</Pose12>
+        <Pose13>-0.849801</Pose13>
+        <Pose14>-1.54467e-06</Pose14>
+        <Pose15>-0.000187958</Pose15>
+        <Pose16>-1.40651e-14</Pose16>
+        <Pose17>-0.0001997</Pose17>
+        <Pose18>-0.849801</Pose18>
+        <Pose19>-0.849801</Pose19>
+        <Pose20>-0.849801</Pose20>
         <Count>10</Count>
         <HandPose0>0</HandPose0>
         <HandPose1>0</HandPose1>
