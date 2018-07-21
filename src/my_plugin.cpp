@@ -48,7 +48,11 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   // Linking the subcriber and refresher WILL crash the GUI
   sortLabelLists();
   JointCurrentPositionSubscriber = getNodeHandle().subscribe("/JointAngle/Current" , 100 , &MyPlugin::subscribeJointCurrentPosition, this);
-  while (currentPosition.size() < currentPositionLabels.size()) currentPosition.push_back(0.0);
+  while (currentPosition.size() < currentPositionLabels.size()) {
+    currentPosition.push_back(0);
+    targetPosition.push_back(0);
+  }
+
   JointCurrentPositionTimer = new QTimer(this);
   connect(JointCurrentPositionTimer, SIGNAL(timeout()), this, SLOT(JointCurrentPositionRefresher()));
   JointCurrentPositionTimer->start(500);
@@ -78,6 +82,13 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   LeftHandJointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::HandJointAngles>("/HandJointAngles/Left/Target", 10);
   RightHandJointTargetPositionPublisher = getNodeHandle().advertise<vrep_test::HandJointAngles>("/HandJointAngles/Right/Target", 10);
 
+
+  while (lefthandtargetPosition.size() < 5) {
+    lefthandtargetPosition.push_back(0);
+    righthandtargetPosition.push_back(0);
+  }
+
+
   for (int i = 0 ; i < hand_joint_lower_limit.size() ; i++) {
     HandPositionSliders[0][i]->setMinimum(0);
     HandPositionSliders[0][i]->setMaximum(100);
@@ -89,11 +100,16 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   }
 
 
-  for (int i = 0 ; i < HandPositionSliders[0].size() ; i++ ) connect(HandPositionSliders[0][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
-  for (int i = 0 ; i < HandPositionSliders[1].size() ; i++ ) connect(HandPositionSliders[1][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
+  for (int i = 0 ; i < HandPositionSliders[0].size() ; i++ ) {
+    connect(HandPositionSliders[0][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
+    connect(HandPositionSliders[1][i], SIGNAL(valueChanged(int)), this, SLOT(onHandJointTargetPositionChanged(int)));
+  }
 
 
   for (int i = 0 ; i < targetPositionSliders.size() ; i++ ) connect(targetPositionSliders[i], SIGNAL(valueChanged(int)), this, SLOT(onJointTargetPositionChanged(int)));
+
+  for (int i = 0 ; i < targetPositionLabels.size() ; i++ ) connect(targetPositionLabels[i], SIGNAL(returnPressed()), this, SLOT(onJointTargetEditChanged() ) );
+
   for (int i = 0 ; i < targetPositionSliders.size() ; i++ ) connect(targetPositionSliders[i], SIGNAL(sliderPressed()), this, SLOT(onJointRotationVisualization()));
   for (int i = 0 ; i < targetPositionSliders.size() ; i++ ) connect(targetPositionSliders[i], SIGNAL(sliderReleased()), this, SLOT(onJointRotationVisualizationFinish()));
 
@@ -169,11 +185,11 @@ void MyPlugin::initPlugin(qt_gui_cpp::PluginContext& context)
   connect(ui_.addAction, &QPushButton::clicked, this, &MyPlugin::onBtnAddClicked);
 
 
-    Path_Ex_Timer = new QTimer(this);
-    connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
+  Path_Ex_Timer = new QTimer(this);
+  connect(Path_Ex_Timer, SIGNAL(timeout()), this, SLOT(Path_Ex_Fun()));
 
 
-  OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);OmniPositions.push_back(0.0);
+  OmniPositions.push_back(0.0); OmniPositions.push_back(0.0); OmniPositions.push_back(0.0);
 
 
 }
@@ -225,16 +241,51 @@ void MyPlugin::JointCurrentPositionRefresher() {
   }
 }
 
-void MyPlugin::onJointTargetPositionChanged(int i) {
-  std::vector<double> targetPosition;
-  for (int i = 0; i < targetPositionSliders.size(); i++) {
-    targetPosition.push_back((double)targetPositionSliders[i]->value() / sliderSlices* ( joint_upper_limit[i] - joint_lower_limit[i]) + joint_lower_limit[i] );
-    targetPositionLabels[i]->setText(QString::number(targetPosition.back(), 'g', 3));
+void MyPlugin::onJointTargetPositionChanged(int js) {
+
+  QSlider * guyatthedoor = (QSlider *) sender();
+
+  int i;
+
+  for (i = 0; i < targetPositionSliders.size(); i++) {
+    if ( targetPositionSliders[i] == guyatthedoor )
+      break;
   }
-  if (ui_.tabWidget->currentIndex() != 5  && !playing_switch )JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
+
+  targetPosition[i] = ((double)targetPositionSliders[i]->value() / sliderSlices * ( joint_upper_limit[i] - joint_lower_limit[i]) + joint_lower_limit[i] );
+
+
+  targetPositionLabels[i]->setText(QString::number(targetPosition[i], 'g', 3));
+
+
+  if (ui_.tabWidget->currentIndex() != 5  && !playing_switch ) {
+    JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
+
+  }
+
 }
 
+void MyPlugin::onJointTargetEditChanged() {
 
+  QLineEdit * guyatthedoor = (QLineEdit *) sender();
+
+  int i;
+
+  for (i = 0; i < targetPositionLabels.size(); i++) {
+    if ( guyatthedoor == targetPositionLabels[i] )
+      break;
+  }
+
+  targetPosition[i] = guyatthedoor->text().toDouble();
+
+  JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
+
+  playing_switch = true;
+
+  targetPositionSliders[i]->setValue((int) ((targetPosition[i] - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * sliderSlices ));
+
+  playing_switch = false;
+}
 
 vrep_test::HandJointAngles MyPlugin::ConvertHandJointAngleMsgs(double HandPosition[5]) {
   vrep_test::HandJointAngles msg;
@@ -246,12 +297,25 @@ vrep_test::HandJointAngles MyPlugin::ConvertHandJointAngleMsgs(double HandPositi
   return msg;
 }
 
+
+vrep_test::HandJointAngles MyPlugin::ConvertHandJointAngleMsgs(std::vector<double> HandPosition) {
+  vrep_test::HandJointAngles msg;
+  msg.Thumb = HandPosition[0];
+  msg.Index = HandPosition[1];
+  msg.Middle = HandPosition[2];
+  msg.Ring = HandPosition[3];
+  msg.Pinky = HandPosition[4];
+  return msg;
+}
+
+
+
 void MyPlugin::sortLabelLists() {
   while (!currentPositionLabels.isEmpty())  currentPositionLabels.pop_back();
   for (int i = 0 ; i < 21; i++) currentPositionLabels.append(ui_.tabWidget->findChild<QLabel *>("Joint_Current_Label_" + QString::number(i)));
 
   while (!targetPositionLabels.isEmpty())  targetPositionLabels.pop_back();
-  for (int i = 0 ; i < 21; i++) targetPositionLabels.append(ui_.tabWidget->findChild<QLabel *>("Joint_Target_Label_" + QString::number(i)));
+  for (int i = 0 ; i < 21; i++) targetPositionLabels.append(ui_.tabWidget->findChild<QLineEdit *>("Joint_Target_Edit_" + QString::number(i)));
 }
 
 void MyPlugin::sortSliderLists() {
@@ -357,7 +421,7 @@ void MyPlugin::onZero() {
 
   playing_switch = false;
 
-  
+
 }
 
 
@@ -579,17 +643,44 @@ void MyPlugin::onIKTargetPositionChanged(double d) {
   IKTargetPositionPublisher.publish(ConvertIkMsgs(IKtargetPosition));
 }
 
-void MyPlugin::onHandJointTargetPositionChanged(int i) {
+void MyPlugin::onHandJointTargetPositionChanged(int js) {
 
-  double temp[5];
-  for (int i = 0; i < 5; i++) {
-    temp[i] = (double)HandPositionSliders[0][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i];
+
+  QSlider * guyatthedoor = (QSlider *) sender();
+
+  int i;
+
+  for (i = 0; i < HandPositionSliders.size(); i++) {
+    if ( HandPositionSliders[0][i] == guyatthedoor) {
+
+
+      if (i < 5 ) {
+        if (ui_.tabWidget->currentIndex() != 5  && !playing_switch ) {
+
+          lefthandtargetPosition[i] = ((double)HandPositionSliders[0][i]->value() / sliderSlices * ( hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i] );
+
+          LeftHandJointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(lefthandtargetPosition));
+        }
+      }
+    }
+
+
+    else if ( HandPositionSliders[1][i] == guyatthedoor) {
+      if (ui_.tabWidget->currentIndex() != 5  && !playing_switch ) {
+
+        righthandtargetPosition[i - 5] = ((double)HandPositionSliders[i][i - 5]->value() / sliderSlices * ( hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i] );
+
+        RightHandJointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(righthandtargetPosition));
+      }
+
+    }
+
+
+    break;
   }
-  if (!playing_switch) LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(temp));
-  for (int i = 0; i < 5; i++) {
-    temp[i] = (double)HandPositionSliders[1][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i];
-  }
-  if (!playing_switch) RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(temp));
+
+
+
 
 }
 
@@ -614,114 +705,6 @@ void MyPlugin::onJointRotationVisualizationFinish() {
   JointVisualizationPublisher.publish(msg);
 }
 
-
-// void MyPlugin::onSteeringValueChanged(int) {
-//   // Send out a twist msg
-//   geometry_msgs::Twist msg;
-//   msg.linear.x = ((double)ui_.Twist_X->value() - 50.) * 0.02;
-//   msg.linear.y = ((double)ui_.Twist_Y->value() - 50.) * 0.02;
-//   msg.angular.z = ((double)ui_.Twist_Z->value() - 50.) * 0.01;
-
-//   TwistPublisher.publish(msg);
-// }
-
-// void MyPlugin::onInertiaParaClicked() {
-//   //Example for ros service communication
-//   ros::ServiceClient client = getNodeHandle().serviceClient<vrep_test::InertiaPara>("/vrep_ros_interface/InertiaPara_Query");
-//   // ptr_XR1->callInertiaPara(client);
-// }
-
-
-// void MyPlugin::onGenerate_ConfigurationClicked() {
-//   // static const double ranges[7] = {2 * PI , PI , 2 * PI , PI / 2.0 - 0.1 , 2.0 * PI , PI / 2.0 , PI / 2.0};
-
-//   // static const double lower_bounds[7] = { -PI , 0.0 , -PI , 0.0, -PI , -PI / 4.0 , -PI / 4.0};
-
-//   static const double ranges[7] =     {2 * PI , PI ,  PI      , -PI / 2.0 + 0.1 , 2.0 * PI , PI / 2.0 , PI / 2.0};
-
-//   static const double lower_bounds[7] = { -PI , 0.0 , -PI / 2.0 , 0.0,              -PI ,     -PI / 4.0 , -PI / 4.0};
-
-//   ROS_INFO("Generating Configurations");
-
-//   while (!GeneratedConfiguration.empty()) GeneratedConfiguration.pop_back();
-//   while (!CurrentData.empty()) CurrentData.pop_back();
-
-//   for (int i = 0 ; i < 100 ; i++) {
-//     std::vector<double> temp_angles(7);
-//     for (int j = 0 ; j < temp_angles.size(); j++) temp_angles[j] = ((double)rand() / (double)RAND_MAX * ranges[j]) + lower_bounds[j];
-//     GeneratedConfiguration.push_back(temp_angles);
-//   }
-
-
-//   //   for (int i = 0 ; i < 100 ; i++) {
-//   //   std::vector<double> temp_angles(7);
-//   //   for (int j = 0 ; j < temp_angles.size(); j++) temp_angles[j] = ((double)i * ranges[j] / 100.0) + lower_bounds[j];
-//   //   GeneratedConfiguration.push_back(temp_angles);
-//   // }
-
-//   // int tempie = GeneratedConfiguration.size();
-//   // int tempie2 = GeneratedConfiguration[0].size();
-//   // ROS_INFO("Generated Configurations , size is [%d] [%d]" , tempie , tempie2);
-
-
-//   // //Configuration 1: Excite the Hand link
-
-//   // //MSX
-//   // for (int i = 0 ; i < 50 ; i++){
-//   //   std::vector<double> temp_angles(7);
-//   //   temp_angles[0] = -PI/2;
-//   //   temp_angles[1] = 0.0;
-//   //   temp_angles[2] = 0.0;
-//   //   temp_angles[3] = 0.0;
-//   //   temp_angles[4] = 0.0;
-//   //   temp_angles[5] = 0.0;
-//   //   temp_angles[6] = ((double)rand() / (double)RAND_MAX * ranges[6]) + lower_bounds[6];
-//   //   GeneratedConfiguration.push_back(temp_angles);
-//   // }
-
-
-
-// }
-
-
-
-
-// void MyPlugin::onCollect_CurrentClicked() {
-
-//   ui_.Save_Current->setEnabled(false);
-//   ui_.Collect_Current->setText("Waiting");
-
-//   if (GeneratedConfiguration.empty()) {
-
-//   }
-//   else {
-//     for (int i = 0 ; i < targetPositionSliders.size(); i++) targetPositionSliders[i]->setEnabled(false);
-
-//     for (int i = 0 ; i < GeneratedConfiguration.size() ; i++) {
-//       ROS_INFO("New Position");
-//       std::vector<double> targetPosition(21);
-
-//       for (int j = 0; j < 7; j++) {
-//         targetPosition[j] = 0.0;
-//         targetPosition[j + 7] = GeneratedConfiguration[i][j];
-//         targetPosition[j + 14] = 0.0;
-
-//       }
-//       ROS_INFO("Publishing New Position");
-//       JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(targetPosition));
-
-
-//       delay(2000);
-
-//       CurrentData.push_back(processCurrents());
-
-//     }
-//   }
-
-//   ui_.Generate_Configuration->setText("Finished Collection");
-
-//   ui_.Save_Current->setEnabled(true);
-// }
 
 
 } // namespace

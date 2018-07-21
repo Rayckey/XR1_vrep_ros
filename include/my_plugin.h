@@ -69,7 +69,8 @@ public:
 
   virtual vrep_test::JointAngles ConvertJointAnglesMsgs(std::vector<double> targetPosition);
   virtual vrep_test::IK_msg ConvertIkMsgs(std::vector<double> IKtargetPosition);
-  virtual vrep_test::HandJointAngles ConvertHandJointAngleMsgs(double HandPosition[5]);
+  vrep_test::HandJointAngles ConvertHandJointAngleMsgs(double HandPosition[5]);
+  vrep_test::HandJointAngles ConvertHandJointAngleMsgs(std::vector<double> HandPosition);
 
   // virtual std::vector<double> processCurrents();
 
@@ -98,8 +99,11 @@ protected slots:
   virtual void onTopicChanged(int index);
   virtual void onModeChanged(int index);
   virtual void onIKTargetPositionChanged(double d);
-  virtual void onHandJointTargetPositionChanged(int i);
-  virtual void onJointTargetPositionChanged(int i);
+  virtual void onHandJointTargetPositionChanged(int js);
+  virtual void onJointTargetPositionChanged(int js);
+
+  virtual void onJointTargetEditChanged();
+
   virtual void onJointRotationVisualization();
   virtual void onJointRotationVisualizationFinish();
   // virtual void onSteeringValueChanged(int);
@@ -151,9 +155,12 @@ private:
   ros::ServiceClient CurrentClient;
   XR1 * ptr_XR1;
   std::vector<double> currentPosition;
+  std::vector<double> targetPosition;
+  std::vector<double> lefthandtargetPosition;
+  std::vector<double> righthandtargetPosition;
   image_transport::Subscriber CameraSubscriber;
   QVector<QLabel *> currentPositionLabels;
-  QVector<QLabel *> targetPositionLabels;
+  QVector<QLineEdit *> targetPositionLabels;
   QVector<QSlider *> targetPositionSliders;
   QVector<QVector<QSlider *> > HandPositionSliders;
   QVector<QDoubleSpinBox  *> targetPositionSpinBox;

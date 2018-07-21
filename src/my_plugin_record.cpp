@@ -21,7 +21,7 @@ namespace vrep_test {
 
 void MyPlugin::onBtnAddClicked()
 {
-  addAction(currentPosition, ui_.lineEdit->text().toDouble(), tr("newAction%1").arg(ui_.actionList->count()));
+  addAction(targetPosition, ui_.lineEdit->text().toDouble(), tr("newAction%1").arg(ui_.actionList->count()));
   addHandAction(getHandTargetPositions());
   addOmniAction(getOmniAction());
 }
@@ -30,57 +30,6 @@ void MyPlugin::onBtnRemoveClicked()
 {
   removeAction(ui_.actionList->currentRow());
 }
-
-// std::vector<double> MyPlugin::processCurrents() {
-
-//   std::vector<double> res;
-
-//   for ( int i = 0; i < 10 ; i++) {
-
-//     vrep_test::JointCurrent srv;
-
-//     srv.request.NAME = "Left";
-
-//     if (CurrentClient.call(srv)) {
-//       ROS_INFO("Got Service Response from Vrep");
-//       res.push_back(srv.response.LSX);
-//       res.push_back(srv.response.LSY);
-//       res.push_back(srv.response.LEZ);
-//       res.push_back(srv.response.LEX);
-//       res.push_back(srv.response.LWZ);
-//       res.push_back(srv.response.LWY);
-//       res.push_back(srv.response.LWX);
-//       res.push_back(srv.response.COL);
-//     }
-
-//     delay(20);
-
-//   }
-//   return res;
-// }
-
-// void MyPlugin::onSave_CurrentClicked() {
-
-//   QString filename = "/home/rocky/CollectedData/testrun.txt";
-//   QFile fileout(filename);
-//   QTextStream out(&fileout);
-
-//   if (!fileout.open(QIODevice::ReadWrite)) ROS_INFO("Failed to write , plzz check privilege");
-//   else {
-//     for (int i = 0 ; i < GeneratedConfiguration.size() ; i++) {
-
-//       for ( int j = 0 ; j < GeneratedConfiguration[i].size() ; j++) out << GeneratedConfiguration[i][j] << " " ;
-//       for ( int j = 0 ; j < CurrentData[i].size() ; j++) out << CurrentData[i][j] << " " ;
-
-
-//       out << endl;
-//     }
-
-//   }
-
-//   fileout.close();
-// }
-
 
 void MyPlugin::delay(int delay_time) {
   QTime dieTime = QTime::currentTime().addMSecs(delay_time);
@@ -222,7 +171,7 @@ void MyPlugin::modifyAction()
 {
   if (ui_.actionList->currentRow() + 1)
   {
-    m_Actions[ui_.actionList->currentRow()] = currentPosition;
+    m_Actions[ui_.actionList->currentRow()] = targetPosition;
     m_ActionsTimes[ui_.actionList->currentRow()] = ui_.lineEdit->text().toDouble();
     m_ActionsHands[ui_.actionList->currentRow()] = getHandTargetPositions();
     m_ActionsOmni[ui_.actionList->currentRow()] = getOmniAction();
@@ -253,54 +202,11 @@ void MyPlugin::play()
   ROS_INFO("Started Timer");
 
 
-
-
-  // if (ui_.actionList->count() > 1 && ui_.actionList->currentRow() != ui_.actionList->count() - 1)
-  // {
-  //   int currentidx;
-
-  //   // // ROS_INFO("current idx is [%d]", currentidx);
-
-  //   // if (ui_.actionList->currentRow() + 1)
-  //   //   currentidx = ui_.actionList->currentRow();
-  //   // else currentidx = 0;
-
-  //   // // ROS_INFO("current idx is [%d]", currentidx);
-
-  //   // while ( currentidx < ui_.actionList->count()) {
-
-  //   //   std::vector<double> goal_position = m_Actions.at(currentidx);
-  //   //   std::vector<double> goal_hand_position = m_ActionsHands.at(currentidx);
-  //   //   double time = m_ActionsTimes.at(currentidx);
-
-  //   //   // ROS_INFO("We got this many joints [%d]", goal_position.size());
-
-  //   //   // ROS_INFO("We got this much time [%f]", time);
-
-  //   //   std::vector<double> start_position;
-  //   //   std::vector<double> start_hand_position;
-
-  //   //   if (currentidx >  0) {
-  //   //     start_hand_position = m_ActionsHands.at(currentidx - 1);
-  //   //     start_position = m_Actions.at(currentidx - 1);
-  //   //   }
-  //   //   else {
-  //   //     while (start_position.size() < goal_position.size())
-  //   //       start_position.push_back(0.0);
-  //   //     while (start_hand_position.size() < goal_hand_position.size())
-  //   //       start_hand_position.push_back(0.0);
-  //   //   }
-
-  //   //   // ROS_INFO("We got this many joints [%d]", start_position.size());
-  //   //   playcall_back(start_position, goal_position, start_hand_position, goal_hand_position, time);
-  //   //   currentidx++;
-  //   // }
-  // }
-  // playing_switch = false;
 }
 
 void MyPlugin::selectActionChanged(int nActionIdx)
 {
+  playing_switch = true;
   if (nActionIdx < ui_.actionList->count() && nActionIdx >= 0)
   {
     std::vector<double> position = m_Actions.at(nActionIdx);
@@ -317,6 +223,8 @@ void MyPlugin::selectActionChanged(int nActionIdx)
     updateTargetSlider(position , hand_position);
     //todo
   }
+
+  playing_switch = false;
 }
 
 void MyPlugin::readAction()
@@ -523,71 +431,31 @@ void MyPlugin::clearAction()
   int nRow = ui_.actionList->count();
   ROS_INFO("clear Count [%d]" , nRow);
   ui_.actionList->clear();
-//  for (int i = nRow ; --i >= 0;)
-//  {
-//    QListWidgetItem * pItem = ui_.actionList->takeItem(0);
-//    delete pItem;
-//  }
 }
 
 void MyPlugin::updateTargetSlider(std::vector<double> v , std::vector<double> u) {
+
   for (int i = 0; i < targetPositionSliders.size(); i++) {
     targetPositionSliders[i]->setValue((int) ((v[i] - joint_lower_limit[i]) / (joint_upper_limit[i] - joint_lower_limit[i]) * sliderSlices ));
   }
 
-  double left_hand_temp[5]; double right_hand_temp[5];
+
   for (int i = 0; i < HandPositionSliders[0].size(); i++) {
     HandPositionSliders[0][i]->setValue((int) ((u[i] - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100 ));
     HandPositionSliders[1][i]->setValue((int) ((u[i + 5] - hand_joint_lower_limit[i]) / (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) * 100 ));
 
-    left_hand_temp[i] = u[i];
-    right_hand_temp[i] = u[i + 5];
+    lefthandtargetPosition[i] = u[i];
+    righthandtargetPosition[i] = u[i + 5];
   }
 
   JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(v));
+  targetPosition = v;
 
-  LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(left_hand_temp));
-  RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(right_hand_temp));
+  LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(lefthandtargetPosition));
+
+  RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(righthandtargetPosition));
+
 }
-
-// void MyPlugin::playcall_back( std::vector<double > start_position ,  std::vector<double> goal_position ,
-//                               std::vector<double > start_hand_position ,  std::vector<double> goal_hand_position , double time) {
-
-//   int steps;
-//   steps = floor(time * 1000 / 10);
-
-//   // ROS_INFO("We got this many steps [%d]" , steps);
-
-//   std::vector<double> increments;
-//   std::vector<double> intermediate_position = start_position;
-
-//   std::vector<double> increments_hands;
-//   std::vector<double> intermediate_hand_position = start_hand_position;
-
-
-//   for (int i = 0 ; i < start_position.size() ; i++) {
-//     increments.push_back((goal_position[i] - start_position[i]) / (double)steps);
-//   }
-
-//   for (int i = 0 ; i < start_hand_position.size() ; i++) {
-//     increments_hands.push_back((goal_hand_position[i] - start_hand_position[i]) / (double)steps);
-//   }
-
-//   // ROS_INFO("We got this many increments [%d]" , increments.size());
-
-//   for (int i = 0 ; i < steps + 1 ; i++) {
-//     for (int j = 0 ; j < goal_position.size() ; j++)
-//       intermediate_position[j] = increments[j] + intermediate_position[j];
-//     for (int j = 0 ; j < goal_hand_position.size() ; j++)
-//       intermediate_hand_position[j] = increments_hands[j] + intermediate_hand_position[j];
-
-//     delay(10);
-
-//     updateTargetSlider(intermediate_position , intermediate_hand_position);
-//   }
-
-// }
-
 
 
 void MyPlugin::generateActuatorDataHelper() {
@@ -730,12 +598,14 @@ double MyPlugin::tinyBezier(double double_index , double pt_s , double pt_1 , do
 std::vector<double> MyPlugin::getHandTargetPositions() {
 
   std::vector<double> temp;
-  for (int i = 0; i < 5; i++) {
-    temp.push_back((double)HandPositionSliders[0][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i]) ;
+  for (int i = 0; i < lefthandtargetPosition.size() ; i++) {
+    // temp.push_back((double)HandPositionSliders[0][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i]) ;
+    temp.push_back(lefthandtargetPosition[i]);
   }
 
-  for (int i = 0; i < 5; i++) {
-    temp.push_back((double)HandPositionSliders[1][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i]) ;
+  for (int i = 0; i < lefthandtargetPosition.size() ; i++) {
+    // temp.push_back((double)HandPositionSliders[1][i]->value() / 100. * (hand_joint_upper_limit[i] - hand_joint_lower_limit[i]) + hand_joint_lower_limit[i]) ;
+    temp.push_back(righthandtargetPosition[i]);
   }
 
   return temp;
