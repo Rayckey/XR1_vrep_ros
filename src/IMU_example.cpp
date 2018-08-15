@@ -119,15 +119,15 @@ void MyPlugin::quaterion2joint() {
 
     std::vector<double> imu_joint_angles;
 
-    for (int i = XR1IMU::Knee_X ; i <= XR1IMU::Right_Wrist_X ; i++)
+    for (int i = XR1::Knee_X ; i <= XR1::Right_Wrist_Y ; i++)
       imu_joint_angles.push_back(angles[i]);
 
     JointTargetPositionPublisher.publish(ConvertJointAnglesMsgs(imu_joint_angles));
 
     double imu_hand_anglesl[5];
 
-    for (int i = XR1IMU::Left_Thumb ; i <= XR1IMU::Left_Pinky ; i++)
-      imu_hand_anglesl[i - XR1IMU::Left_Thumb] = angles[i];
+    for (int i = XR1::Left_Thumb ; i <= XR1::Left_Pinky ; i++)
+      imu_hand_anglesl[i - XR1::Left_Thumb] = angles[i];
 
 
     LeftHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(imu_hand_anglesl));
@@ -135,8 +135,8 @@ void MyPlugin::quaterion2joint() {
     double imu_hand_anglesr[5];
 
 
-    for (int i = XR1IMU::Right_Thumb ; i <= XR1IMU::Right_Pinky ; i++)
-      imu_hand_anglesr[i - XR1IMU::Right_Thumb] = angles[i];
+    for (int i = XR1::Right_Thumb ; i <= XR1::Right_Pinky ; i++)
+      imu_hand_anglesr[i - XR1::Right_Thumb] = angles[i];
 
     RightHandJointTargetPositionPublisher.publish(ConvertHandJointAngleMsgs(imu_hand_anglesr));
 
@@ -145,7 +145,7 @@ void MyPlugin::quaterion2joint() {
 
       std::vector<double> temp_IMUData;
 
-      for (int i = XR1IMU::Knee_X; i <= XR1IMU::Right_Pinky; ++i)
+      for (int i = XR1::Knee_X; i <= XR1::Right_Pinky; ++i)
         temp_IMUData.push_back(angles[i]) ;
 
       //Not Controlling them with omni wheels I mean come on

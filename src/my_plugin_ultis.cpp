@@ -188,23 +188,9 @@ vrep_test::JointAngles MyPlugin::ConvertJointAnglesMsgs(std::vector<double> targ
 
   msg. Left_Wrist_Z = targetPosition[11];
 
-  msg. Left_Wrist_Y = targetPosition[12];
+  msg. Left_Wrist_X = targetPosition[12];
 
-  msg. Left_Wrist_X = targetPosition[13];
-
-  msg. Left_Shoulder_X = targetPosition[7];
-
-  msg. Left_Shoulder_Y = targetPosition[8];
-
-  msg. Left_Elbow_Z = targetPosition[9];
-
-  msg. Left_Elbow_X = targetPosition[10];
-
-  msg. Left_Wrist_Z = targetPosition[11];
-
-  msg. Left_Wrist_Y = targetPosition[12];
-
-  msg. Left_Wrist_X = targetPosition[13];
+  msg. Left_Wrist_Y = targetPosition[13];
 
   msg. Right_Shoulder_X = targetPosition[14];
 
@@ -216,9 +202,9 @@ vrep_test::JointAngles MyPlugin::ConvertJointAnglesMsgs(std::vector<double> targ
 
   msg. Right_Wrist_Z = targetPosition[18];
 
-  msg. Right_Wrist_Y = targetPosition[19];
+  msg. Right_Wrist_X = targetPosition[19];
 
-  msg. Right_Wrist_X = targetPosition[20];
+  msg. Right_Wrist_Y = targetPosition[20];
 
   return msg;
 }

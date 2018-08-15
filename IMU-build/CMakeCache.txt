@@ -175,7 +175,7 @@ XR1IMU_BINARY_DIR:STATIC=/home/rocky/catkin_ws/src/vrep_test/IMU-build
 XR1IMU_LIB_DEPENDS:STATIC=
 
 //Value Computed by CMake
-XR1IMU_SOURCE_DIR:STATIC=/home/rocky/qtXR1/XR1IMU/XR1IMU
+XR1IMU_SOURCE_DIR:STATIC=/home/rocky/qtXR1/XR1IMU
 
 
 ########################
@@ -256,7 +256,7 @@ CMAKE_GENERATOR_PLATFORM:INTERNAL=
 CMAKE_GENERATOR_TOOLSET:INTERNAL=
 //Source directory with the top level CMakeLists.txt file for this
 // project
-CMAKE_HOME_DIRECTORY:INTERNAL=/home/rocky/qtXR1/XR1IMU/XR1IMU
+CMAKE_HOME_DIRECTORY:INTERNAL=/home/rocky/qtXR1/XR1IMU
 //Install .so files without execute permission.
 CMAKE_INSTALL_SO_NO_EXE:INTERNAL=1
 //ADVANCED property for variable: CMAKE_LINKER

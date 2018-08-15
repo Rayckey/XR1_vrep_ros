@@ -43,7 +43,7 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/rocky/qtXR1/XR1IMU/XR1IMU
+CMAKE_SOURCE_DIR = /home/rocky/qtXR1/XR1IMU
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = /home/rocky/catkin_ws/src/vrep_test/IMU-build
@@ -58,17 +58,17 @@ include CMakeFiles/XR1IMU.dir/progress.make
 include CMakeFiles/XR1IMU.dir/flags.make
 
 CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.o: CMakeFiles/XR1IMU.dir/flags.make
-CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.o: /home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.cpp
+CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.o: /home/rocky/qtXR1/XR1IMU/XR1IMUmethods.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/rocky/catkin_ws/src/vrep_test/IMU-build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.o"
-	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.o -c /home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.cpp
+	/usr/bin/c++   $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.o -c /home/rocky/qtXR1/XR1IMU/XR1IMUmethods.cpp
 
 CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.i"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.cpp > CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.i
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/rocky/qtXR1/XR1IMU/XR1IMUmethods.cpp > CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.i
 
 CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.s"
-	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.cpp -o CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.s
+	/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/rocky/qtXR1/XR1IMU/XR1IMUmethods.cpp -o CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.s
 
 CMakeFiles/XR1IMU.dir/XR1IMUmethods.cpp.o.requires:
 
@@ -108,6 +108,6 @@ CMakeFiles/XR1IMU.dir/clean:
 .PHONY : CMakeFiles/XR1IMU.dir/clean
 
 CMakeFiles/XR1IMU.dir/depend:
-	cd /home/rocky/catkin_ws/src/vrep_test/IMU-build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rocky/qtXR1/XR1IMU/XR1IMU /home/rocky/qtXR1/XR1IMU/XR1IMU /home/rocky/catkin_ws/src/vrep_test/IMU-build /home/rocky/catkin_ws/src/vrep_test/IMU-build /home/rocky/catkin_ws/src/vrep_test/IMU-build/CMakeFiles/XR1IMU.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/rocky/catkin_ws/src/vrep_test/IMU-build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/rocky/qtXR1/XR1IMU /home/rocky/qtXR1/XR1IMU /home/rocky/catkin_ws/src/vrep_test/IMU-build /home/rocky/catkin_ws/src/vrep_test/IMU-build /home/rocky/catkin_ws/src/vrep_test/IMU-build/CMakeFiles/XR1IMU.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/XR1IMU.dir/depend
 

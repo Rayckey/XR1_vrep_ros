@@ -6,19 +6,23 @@
 
 #IncludeRegexTransform: 
 
-/home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.cpp
+/home/rocky/qtXR1/XR1IMU/../XR1ControllerPM/xr1define.h
+
+/home/rocky/qtXR1/XR1IMU/XR1IMUmethods.cpp
 XR1IMUmethods.h
-/home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.h
+/home/rocky/qtXR1/XR1IMU/XR1IMUmethods.h
 iostream
 -
 
-/home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.h
+/home/rocky/qtXR1/XR1IMU/XR1IMUmethods.h
 eigen3/Eigen/Dense
-/home/rocky/qtXR1/XR1IMU/XR1IMU/eigen3/Eigen/Dense
+/home/rocky/qtXR1/XR1IMU/eigen3/Eigen/Dense
 xr1IMUdefine.h
-/home/rocky/qtXR1/XR1IMU/XR1IMU/xr1IMUdefine.h
+/home/rocky/qtXR1/XR1IMU/xr1IMUdefine.h
+xr1define.h
+/home/rocky/qtXR1/XR1IMU/xr1define.h
 vector
 -
 
-/home/rocky/qtXR1/XR1IMU/XR1IMU/xr1IMUdefine.h
+/home/rocky/qtXR1/XR1IMU/xr1IMUdefine.h
 

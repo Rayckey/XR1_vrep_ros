@@ -4,9 +4,11 @@
 
 #include "eigen3/Eigen/Dense"
 #include "xr1IMUdefine.h"
+#include "xr1define.h"
 #include <vector>
 
 using namespace Eigen;
+
 class XR1IMUmethods
 {
 public:
@@ -46,7 +48,7 @@ private:
 
     Vector3d FingerVector2YX(Vector3d v);
 
-    double EasyFilter(double u, double v, double filter_ratio  = 0.5);
+    double EasyFilter(double u, double v, double filter_ratio  = 0.1);
 
     double tinyCurvefit(double double_index , double pt_s , double pt_1 , double pt_2 , double pt_e);
 

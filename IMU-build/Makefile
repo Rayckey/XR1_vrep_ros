@@ -48,7 +48,7 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/rocky/qtXR1/XR1IMU/XR1IMU
+CMAKE_SOURCE_DIR = /home/rocky/qtXR1/XR1IMU
 
 # The top-level build directory on which CMake was run.
 CMAKE_BINARY_DIR = /home/rocky/catkin_ws/src/vrep_test/IMU-build

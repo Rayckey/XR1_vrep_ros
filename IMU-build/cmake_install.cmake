@@ -1,4 +1,4 @@
-# Install script for directory: /home/rocky/qtXR1/XR1IMU/XR1IMU
+# Install script for directory: /home/rocky/qtXR1/XR1IMU
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

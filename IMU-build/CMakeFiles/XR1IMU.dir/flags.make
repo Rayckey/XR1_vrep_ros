@@ -6,5 +6,5 @@ CXX_FLAGS = -fPIC
 
 CXX_DEFINES = -DXR1IMU_EXPORTS
 
-CXX_INCLUDES = -I/home/rocky/qtXR1/XR1IMU/XR1IMU/xr1IMUdefine.h -I/home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.h -I/home/rocky/qtXR1/XR1IMU/XR1IMU/../Eigen3 
+CXX_INCLUDES = -I/home/rocky/qtXR1/XR1IMU/xr1IMUdefine.h -I/home/rocky/qtXR1/XR1IMU/XR1IMUmethods.h -I/home/rocky/qtXR1/XR1IMU/../Eigen3 -I/home/rocky/qtXR1/XR1IMU/../XR1ControllerPM 
 

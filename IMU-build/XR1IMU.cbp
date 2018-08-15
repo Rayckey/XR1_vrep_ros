@@ -44,9 +44,10 @@
          <Option type="3" />
          <Option compiler="gcc" />
          <Compiler>
-            <Add directory="/home/rocky/qtXR1/XR1IMU/XR1IMU/../Eigen3" />
-            <Add directory="/home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.h" />
-            <Add directory="/home/rocky/qtXR1/XR1IMU/XR1IMU/xr1IMUdefine.h" />
+            <Add directory="/home/rocky/qtXR1/XR1IMU/../Eigen3" />
+            <Add directory="/home/rocky/qtXR1/XR1IMU/../XR1ControllerPM" />
+            <Add directory="/home/rocky/qtXR1/XR1IMU/XR1IMUmethods.h" />
+            <Add directory="/home/rocky/qtXR1/XR1IMU/xr1IMUdefine.h" />
             <Add directory="/usr/include" />
             <Add directory="/usr/include/c++/5" />
             <Add directory="/usr/include/c++/5/backward" />
@@ -70,9 +71,10 @@
          <Option type="3" />
          <Option compiler="gcc" />
          <Compiler>
-            <Add directory="/home/rocky/qtXR1/XR1IMU/XR1IMU/../Eigen3" />
-            <Add directory="/home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.h" />
-            <Add directory="/home/rocky/qtXR1/XR1IMU/XR1IMU/xr1IMUdefine.h" />
+            <Add directory="/home/rocky/qtXR1/XR1IMU/../Eigen3" />
+            <Add directory="/home/rocky/qtXR1/XR1IMU/../XR1ControllerPM" />
+            <Add directory="/home/rocky/qtXR1/XR1IMU/XR1IMUmethods.h" />
+            <Add directory="/home/rocky/qtXR1/XR1IMU/xr1IMUdefine.h" />
             <Add directory="/usr/include" />
             <Add directory="/usr/include/c++/5" />
             <Add directory="/usr/include/c++/5/backward" />
@@ -90,13 +92,13 @@
          </MakeCommands>
       </Target>
       </Build>
-      <Unit filename="/home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.cpp">
+      <Unit filename="/home/rocky/qtXR1/XR1IMU/XR1IMUmethods.cpp">
          <Option target="XR1IMU"/>
       </Unit>
-      <Unit filename="/home/rocky/qtXR1/XR1IMU/XR1IMU/XR1IMUmethods.h">
+      <Unit filename="/home/rocky/qtXR1/XR1IMU/XR1IMUmethods.h">
          <Option target="XR1IMU"/>
       </Unit>
-      <Unit filename="/home/rocky/qtXR1/XR1IMU/XR1IMU/CMakeLists.txt">
+      <Unit filename="/home/rocky/qtXR1/XR1IMU/CMakeLists.txt">
           <Option virtualFolder="CMake Files\" />
       </Unit>
    </Project>
