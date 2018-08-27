@@ -114,6 +114,16 @@ void MyPlugin::quaterion2joint() {
   std::vector<double> angles = XR1IMUptr->getJointAngles();
 
 
+  //Check if any module is missing or lagging
+  std::vector<u_int8_t> missed_ids = XR1IMUptr->checkModules();
+
+  for (int i = 0 ; i < missed_ids.size() ; i++){
+  	ROS_INFO("The Missing ID inclues [%d]" , missed_ids[i]);
+  }
+
+
+
+
   // The rest is just vrep and ROS mumble jumble
   if (ui_.tabWidget->currentIndex() == 7) {
 

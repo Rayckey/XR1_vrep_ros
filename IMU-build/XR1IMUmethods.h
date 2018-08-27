@@ -20,6 +20,8 @@ public:
 
     void quaternioncallback(u_int8_t id , double w, double x, double y , double z );
 
+    std::vector<u_int8_t> checkModules();
+
 
 
 private:
@@ -48,7 +50,7 @@ private:
 
     Vector3d FingerVector2YX(Vector3d v);
 
-    double EasyFilter(double u, double v, double filter_ratio  = 0.1);
+    double EasyFilter(double u, double v, double filter_ratio  = 0.5);
 
     double tinyCurvefit(double double_index , double pt_s , double pt_1 , double pt_2 , double pt_e);
 
@@ -75,6 +77,10 @@ private:
     double Finger_Ratios;
 
     double Thumb_Ratios;
+
+    std::vector<bool> Uncharted_Chart;
+
+    std::vector<u_int8_t> Lost_Ids;
 
 };
 
