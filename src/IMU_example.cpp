@@ -36,7 +36,7 @@ void MyPlugin::gettingIMUStarted() {
   //Currently, the fastest rate is close to 30 Hz avoid to avoid request conflict
   QTimer * QuaTimer = new QTimer;
   connect(QuaTimer , &QTimer::timeout , this , &MyPlugin::quatimercallback);
-  QuaTimer->start(50);
+  QuaTimer->start(30);
 
 
   //Connect the Actuator Controller Signal to a member function
@@ -188,7 +188,10 @@ void MyPlugin::on_SaveIMU_clicked() {
 
 
 
-  std::vector<std::vector<double> > ready2writedata = saveIMUHelper();
+  // std::vector<std::vector<double> > ready2writedata = saveIMUHelper();
+
+
+  std::vector<std::vector<double> > ready2writedata = IMUData;
 
   if (ready2writedata.size()) {
     QFileDialog dialog(0, tr("Save IMU Data"), QDir::currentPath());
