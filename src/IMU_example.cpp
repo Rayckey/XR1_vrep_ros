@@ -80,7 +80,7 @@ void MyPlugin::on_InitIMU_clicked()
   ConvertTimer->stop();
 
   //There is no point in having the timer running faster than the reading timer.
-  ConvertTimer->start(50);
+  ConvertTimer->start(30);
 }
 
 

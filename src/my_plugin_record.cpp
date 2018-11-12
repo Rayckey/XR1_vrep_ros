@@ -236,7 +236,7 @@ void MyPlugin::play()
   OmniPositions[0] = 0.0;
   OmniPositions[1] = 0.0;
   OmniPositions[2] = 0.0;
-  Path_Ex_Timer->start(10);
+  Path_Ex_Timer->start(30);
 
 
 
