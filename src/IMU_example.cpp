@@ -62,7 +62,7 @@ void MyPlugin::gettingIMUStarted() {
 
 
 
-  // Clears the data if you don't want it 
+  // Clears the data if you don't want it
   connect(ui_.ClearIMU , &QPushButton::clicked , this , &MyPlugin::on_ClearIMU_clicked);
 }
 
@@ -117,8 +117,8 @@ void MyPlugin::quaterion2joint() {
   //Check if any module is missing or lagging
   std::vector<u_int8_t> missed_ids = XR1IMUptr->checkModules();
 
-  for (int i = 0 ; i < missed_ids.size() ; i++){
-  	ROS_INFO("The Missing ID inclues [%d]" , missed_ids[i]);
+  for (int i = 0 ; i < missed_ids.size() ; i++) {
+    ROS_INFO("The Missing ID inclues [%d]" , missed_ids[i]);
   }
 
 
@@ -188,10 +188,10 @@ void MyPlugin::on_SaveIMU_clicked() {
 
 
 
-  // std::vector<std::vector<double> > ready2writedata = saveIMUHelper();
+  std::vector<std::vector<double> > ready2writedata = saveIMUHelper();
 
 
-  std::vector<std::vector<double> > ready2writedata = IMUData;
+  // std::vector<std::vector<double> > ready2writedata = IMUData;
 
   if (ready2writedata.size()) {
     QFileDialog dialog(0, tr("Save IMU Data"), QDir::currentPath());
@@ -230,7 +230,7 @@ void MyPlugin::on_SaveIMU_clicked() {
 }
 
 
-void MyPlugin::on_ClearIMU_clicked(){
+void MyPlugin::on_ClearIMU_clicked() {
   while (!IMUData.empty())
     IMUData.pop_back();
 }
@@ -241,7 +241,7 @@ std::vector<std::vector<double> > MyPlugin::saveIMUHelper() {
   std::vector<std::vector<double> > res;
 
 
-  
+
 
   if (IMUData.size()) {
 
@@ -253,7 +253,7 @@ std::vector<std::vector<double> > MyPlugin::saveIMUHelper() {
 
       std::vector<double> goal_position;
 
-      double steps = 5.0;
+      double steps = -1.0;
 
       if ( i == IMUData.size() ) {
         while (goal_position.size() < IMUData[0].size())
@@ -267,8 +267,9 @@ std::vector<std::vector<double> > MyPlugin::saveIMUHelper() {
       std::vector<double> start_position ;
 
       if ( i == 0 ) {
-        while (start_position.size() < goal_position.size())
+        while (start_position.size() < goal_position.size()) {
           start_position.push_back(0);
+        }
         steps = 50;
       }
 
@@ -277,17 +278,24 @@ std::vector<std::vector<double> > MyPlugin::saveIMUHelper() {
 
 
 
-      for (int i = 1 ; i < steps ; i++) {
-
-        std::vector<double> intermediate_position;
-
-        for (int j = 0 ; j < start_position.size() ; j++) {
-          intermediate_position.push_back(tinyBezier ((double)i/steps,  start_position[j] , start_position[j]  , goal_position[j] , goal_position[j] ) );
-        }
-
-        res.push_back(intermediate_position);
+      if (steps < 0) {
 
       }
+
+      else {
+        for (int i = 1 ; i < steps ; i++) {
+          std::vector< double > intermediate_position;
+
+          for (int j = 0 ; j < start_position.size() ; j++) {
+            intermediate_position.push_back(tinyBezier ((double)i / steps,  start_position[j] , start_position[j]  , goal_position[j] , goal_position[j] ) );
+          }
+
+          res.push_back(intermediate_position);
+
+        }
+      }
+
+
 
       res.push_back(goal_position);
     }
@@ -300,12 +308,12 @@ std::vector<std::vector<double> > MyPlugin::saveIMUHelper() {
 
 
 
-double MyPlugin::tinyBezier(double double_index , double pt_s , double pt_1 , double pt_2 , double pt_e){
+double MyPlugin::tinyBezier(double double_index , double pt_s , double pt_1 , double pt_2 , double pt_e) {
 
-        return pow( (1.0 - double_index) , 3.0) * pt_s + 
-                    3.0 * pow( (1.0 - double_index) , 2.0) *  double_index * pt_1 + 
-                    3.0 * (1.0 - double_index) *  pow(double_index ,2.0) * pt_2 +
-                    pow(double_index ,3.0) * pt_e;
+  return pow( (1.0 - double_index) , 3.0) * pt_s +
+         3.0 * pow( (1.0 - double_index) , 2.0) *  double_index * pt_1 +
+         3.0 * (1.0 - double_index) *  pow(double_index , 2.0) * pt_2 +
+         pow(double_index , 3.0) * pt_e;
 }
 
 
