@@ -1,6 +1,6 @@
 ﻿#ifndef DATAUTIL_H
 #define DATAUTIL_H
-#include <QMap>
+#include <map>
 #include "innfosproxy.h"
 #include "actuatordata.h"
 #include "actuatordefine.h"
@@ -28,8 +28,8 @@ private:
     };
 private:
     DataUtil();
-    QMap<Actuator::Directives,Actuator::ActuatorAttribute> readDataMap;
-    QMap<Actuator::Directives,Actuator::ActuatorAttribute> setDataMap;
+    std::map<Actuator::Directives,Actuator::ActuatorAttribute> readDataMap;
+    std::map<Actuator::Directives,Actuator::ActuatorAttribute> setDataMap;
     static DataUtil * m_pInstance;
 };
 #endif // DATAUTIL_H

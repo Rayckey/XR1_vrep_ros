@@ -27,9 +27,9 @@ find_package(catkin REQUIRED COMPONENTS
   tf2_ros
 )
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/serialPort_Ethernet2CAN_sdk_v2.0.0/sdk/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/serialPort_Ethernet2CAN_sdk_v2.0.0/sdk/include/QtCore)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/serialPort_Ethernet2CAN_sdk_v2.0.0/sdk/include/QtNetwork)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ActuatorController/actuatorController)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ActuatorController/actuatorController/asio)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ActuatorController/actuatorController/serial)
 
 
 if("${qt_gui_cpp_USE_QT_MAJOR_VERSION} " STREQUAL "5 ")
@@ -113,13 +113,13 @@ include_directories(
 )
 
 
-SET(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/serialPort_Ethernet2CAN_sdk_v2.0.0/sdk/lib/linux_x86_64)
+SET(LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/serialPort_Ethernet2CAN_sdk_v3.0.0/sdk/lib/linux_x86_64)
 #message(${CMAKE_CURRENT_SOURCE_DIR}/serialPort_Ethernet2CAN_sdk_v2.0.0/sdk/include)
 link_directories(${LIB_DIR})
 
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
-  ${LIB_DIR}/libactuatorControllerd.so
+  ${LIB_DIR}/libactuatorController.so
   ${CMAKE_CURRENT_SOURCE_DIR}/IMU-build/libXR1IMU.so
 )
 

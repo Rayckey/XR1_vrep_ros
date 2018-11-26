@@ -19,9 +19,9 @@ void MyPlugin::gettingIMUStarted() {
 
   ROS_INFO("Setting IMU Controller");
   // Initilization of Actuator Controller A.K.A. the Liang's library
-  int stuff = 0 ;
 
-  ActuatorController::initController(stuff, 0);
+
+  ActuatorController::initController();
 
   ptr_AC = ActuatorController::getInstance();
 
@@ -40,7 +40,10 @@ void MyPlugin::gettingIMUStarted() {
 
 
   //Connect the Actuator Controller Signal to a member function
-  ptr_AC->m_sQuaternion.connect_member(this , &MyPlugin::quaternioncallback);
+  ptr_AC->m_sQuaternion->connect_member(this , &MyPlugin::quaternioncallback);
+  ptr_AC->m_sError->s_Connect([](uint8_t id,uint16_t error,std::string msg){
+    std::cout << msg << std::endl;
+  });
 
 
   //Using a Qt timer to calculate the joint angles at a fixed interval

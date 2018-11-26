@@ -1,137 +1,153 @@
 ﻿#ifndef MOTORDATA_H
 #define MOTORDATA_H
 
-#include <QObject>
-#include <QMap>
-#include <QVector>
-#include <QVariant>
-#include <QTimer>
-#include <QXmlStreamReader>
-#include <QFile>
-#include <QList>
+#include <map>
+#include <vector>
+#include <list>
 #include "actuatordefine.h"
+#include "itimer.h"
 
 
-class ActuatorData : public QObject
+using namespace Actuator;
+//class  ITimer;
+
+class ActuatorData
 {
-    Q_OBJECT
 
 public:
-    explicit ActuatorData(const quint8 nDeviceId,const quint32 nDeviceMac,QObject *parent = 0);
-    quint8 deviceId() const;
-    qint8 requestDeviceId()const;
-    quint32 deviceMac()const;
-    void setValueByProxy(const int nProxyId,QVariant value);//save value that recive
+    enum DATA_STATUS{
+        DATA_WAIT,
+        DATA_FAILED,
+        DATA_NORMAL,
+        DATA_NONE,
+    };
+    explicit ActuatorData(const uint8_t nDeviceId,const uint32_t nDeviceMac,const uint32_t ipAddress);
+    uint8_t deviceId() const;
+    uint64_t longId()const;
+    uint64_t requestDeviceId()const;
+    uint32_t deviceMac()const;
+    bool isRevisable(Actuator::ActuatorAttribute nDataId)const;
+    void setValueByProxy(const int nProxyId,double value);//save value that recive
     void requestAllValue();
-    QVariant getValue(Actuator::ActuatorAttribute nDataId)const;
-    QVariant getUserRequestValue(Actuator::ActuatorAttribute nDataId)const;
-    void setValueByUser(Actuator::ActuatorAttribute nDataId,QVariant value,bool bSendProxy=true);//set value by user, will send proxy or not
+    double getValue(Actuator::ActuatorAttribute nDataId)const;
+    double getUserRequestValue(Actuator::ActuatorAttribute nDataId)const;
+    void regainData(Actuator::ActuatorAttribute nDataId);
+    int getDataStatus(Actuator::ActuatorAttribute nDataId)const;
+    void requestFailed(Actuator::ActuatorAttribute nDataId);
+    void setValueByUser(Actuator::ActuatorAttribute nDataId,double value,bool bSendProxy=true);//set value by user, will send proxy or not
     void responseHeart(bool bSuccess);
     bool isOnline()const;
-    QVector<quint16> errorHistory()const{
+    std::vector<uint16_t> errorHistory()const{
         return m_errorHistory;
     }
     Actuator::ActuatorMode currentMode()const;
     ~ActuatorData();
 
     bool deviceIdIsAvailable()const;
-    void changeDemand(qreal value);//demand value change
+    void changeDemand(double value);//demand value change
     void switchAutoRequestActual(bool bStart);
-    void setAutoRequestInterval(quint32 mSec);
+    void setAutoRequestInterval(uint32_t mSec);
 
     void saveAllParams();
     void clearHomingInfo();
-    void setHomingOperationMode(const quint8 nMode);
+    void setHomingOperationMode(const uint8_t nMode);
     void openChartChannel(const int nChannelId);
     void closeChartChannel(const int nChannelId);
     void switchChartAllChannel(bool bOn);
-    void switchCalibrationVel(quint8 nValue);
-    void switchCalibration(quint8 nValue);
+    void switchCalibrationVel(uint8_t nValue);
+    void switchCalibration(uint8_t nValue);
     void startCalibration();
-    void requestSuccessfully(quint8 nDataId);
+    void requestSuccessfully(uint8_t nDataId);
 protected:
-    void setValue(int nDataId,QVariant value,bool bEmitSignal = true);
-    void userRequestValue(int nDataId,QVariant value);
+    void setValue(int nDataId,double value,bool bEmitSignal = true);
+    void userRequestValue(int nDataId,double value);
 public:
     void initData();
-public slots:
+//public slots:
     void activeModeSuccessfully();
     void saveData();
     void loadData();
     void reconnect();
 
-private slots:
+//private slots:
     void requestActualValue();//request value initiatively
 private:
-    void saveDataToFile(QString fileName);
-    void readDataFromFile(QString fileName);
-    void readParams(QXmlStreamReader *reader);
-signals:
-    void acturalVauleChange(Actuator::ActuatorMode Id,QVector<qreal> values);//only use by chart
-    void currentErrorChange(const int nErrorId);
+    void setValidValue(const int nProxyId, double value);
+//    void saveDataToFile(std::string fileName);
+//    void readDataFromFile(std::string fileName);
+//    void readParams(QXmlStreamReader *reader);
 private:
 private:
-    QVariant m_motorData[Actuator::DATA_CNT];
-    QVariant m_userRequestData[Actuator::DATA_CNT];
+    double m_motorData[Actuator::DATA_CNT];
+    double m_userRequestData[Actuator::DATA_CNT];
+    int m_dataStatus[Actuator::DATA_CNT];
     int m_nHeartFailCnt;//
-    QTimer * m_pHeartTimer;
-    QTimer * m_pValueTimer;
-    QVector<quint16> m_errorHistory;
+    ITimer * m_pHeartTimer;
+    ITimer * m_pValueTimer;
+    std::vector<uint16_t> m_errorHistory;
 
-    quint32 m_nAutoRequestInterval;
+    uint32_t m_nAutoRequestInterval;
 };
 
 
 //motordata manger
 #define motorDataMgrInstance MotorDataMgr::getInstance()
 
-class MotorDataMgr : public QObject
+class MotorDataMgr
 {
-    Q_OBJECT
 public:
     static MotorDataMgr * getInstance();
     virtual ~MotorDataMgr();
 
-    qreal getMotorDataAttrValueAsDouble(const quint8 nDeviceId,const Actuator::ActuatorAttribute attrId)const;
-    qint32 getMotorDataAttrValueAsInt(const quint8 nDeviceId,const Actuator::ActuatorAttribute attrId)const;
-    void setMotorDataAttrByUser(const quint8 nDeviceId,const Actuator::ActuatorAttribute attrId,QVariant value,bool bSend=true);
-    void setMotorDataAttrByProxy(const quint8 nDeviceId,int proxyId,QVariant value);//data from proxy
-    void setMotorDataAttrInBatch(const QList<quint8> idList,const Actuator::ActuatorAttribute attrId,QVariant value,bool bSend=true);
-    void AddMotorsData(QMap<quint8,quint32> dataMap);
-    QMap<quint8,quint32> getMotorsMap()const;
-    QVector<quint16> motorErrorHistory(const quint8 nDeviceId)const;
-    bool deviceIdHasExist(quint8 nDeviceId);
-    void activeMotorModeSuccessfully(const quint8 nDeviceId);
-    void activeMotorModeInBatch(const QList<quint8> idList,const Actuator::ActuatorMode mode);
-    void regainAllData(const quint8 nDeviceId);
-    void regainData(const quint8 nDeviceId,Actuator::ActuatorAttribute attrId);
-    void responseHeart(const quint8 nDeviceId,bool bSuccessfully);
+    double getMotorDataAttrValueAsDouble(const uint64_t longId,const Actuator::ActuatorAttribute attrId)const;
+    int32_t getMotorDataAttrValueAsInt(const uint64_t longId,const Actuator::ActuatorAttribute attrId)const;
+    void setMotorDataAttrByUser(const uint64_t longId,const Actuator::ActuatorAttribute attrId,double value,bool bSend=true);
 
-    void switchAutoRequestActual(const quint8 nDeviceId,bool bStart);
-    void setAutoRequestInterval(const quint8 nDeviceId,quint32 mSec);
-    qint8 getOldDeviceId(const quint8 nNewDeviceId);
+    void setMotorDataAttrByProxy(const uint64_t longId,int proxyId,double value);//data from proxy
+    void setMotorDataAttrInBatch(const std::list<uint64_t> idList,const Actuator::ActuatorAttribute attrId,double value,bool bSend=true);
+    void AddMotorsData(std::multimap<uint32_t,std::pair<uint8_t,uint32_t>> dataMap);
+    std::vector<uint64_t> getLongIdArray()const;
+    std::vector<uint64_t> getLongIdGroup(uint64_t longId)const;
+    std::vector<uint16_t> motorErrorHistory(const uint64_t longId)const;
+    //bool deviceIdHasExist(uint64_t longId);
+//    void activeMotorModeSuccessfully(const uint64_t longId);
+    void activeMotorModeInBatch(const std::vector<uint64_t> idList,const Actuator::ActuatorMode mode);
+//    void regainAllData(const uint64_t longId);
+    void regainData(const uint64_t longId,Actuator::ActuatorAttribute attrId);
 
-    void saveAllParams(const quint8 nDeviceId);
-    void clearHomingInfo(const quint8 nDeviceId);
-    void setHomingOperationMode(const quint8 nDeviceId,const quint8 nMode);
-    void openChartChannel(quint8 nDeviceId, const int nChannelId);
-    void closeChartChannel(quint8 nDeviceId, const int nChannelId);
-    void switchChartAllChannel(quint8 nDeviceId,bool bOn);
-    void switchCalibrationVel(quint8 nDeviceId,quint8 nValue);
-    void switchCalibration(quint8 nDeviceId,quint8 nValue);
-    void startCalibration(quint8 nDeviceId);
-    void requestSuccessfully(const quint8 nDeviceId,const quint8 nProxyId);
-    void requestFailed(const quint8 nDeviceId,const quint8 nProxyId);
-    void reconnect(quint8 nDeviceId);
-    void clearError(quint8 nDeviceId);
-    void sendCmd(quint8 nDeviceId,quint16 cmdId);
-    void sendCmd(quint8 nDeviceId,quint16 cmdId,quint8 value);
+    void responseHeart(const uint64_t longId,bool bSuccessfully);
+
+    void switchAutoRequestActual(const uint64_t longId,bool bStart);
+    void setAutoRequestInterval(const uint64_t longId,uint32_t mSec);
+    uint8_t getOldDeviceId(const uint64_t newLongId);
+
+    void saveAllParams(const uint64_t longId);
+    void clearHomingInfo(const uint64_t longId);
+    void setHomingOperationMode(const uint64_t longId,const uint8_t nMode);
+    void openChartChannel(uint64_t longId, const int nChannelId);
+    void closeChartChannel(uint64_t longId, const int nChannelId);
+    void switchChartAllChannel(uint64_t longId,bool bOn);
+    void switchCalibrationVel(uint64_t longId,uint8_t nValue);
+    void switchCalibration(uint64_t longId,uint8_t nValue);
+    void startCalibration(uint64_t longId);
+    void requestSuccessfully(const uint64_t longId,const uint8_t nProxyId);
+    void requestFailed(const uint64_t longId,const uint8_t nProxyId);
+    void reconnect(uint64_t longId);
+    void clearError(uint64_t longId);
+
+    bool setMotorDataWithACK(const uint64_t longId,const Actuator::ActuatorAttribute attrId,double value,bool bSend=true);
+    double regainAttrWithACK(const uint64_t longId,Actuator::ActuatorAttribute attrId,bool *bSuccess=nullptr);
+
+    void sendCmd(uint64_t longId,uint16_t cmdId);
+    void sendCmd(uint64_t longId,uint16_t cmdId,uint8_t value);
+    void sendCmd(uint64_t longId,uint16_t cmdId,uint32_t value);
+    uint64_t getLongIdByDeviceId(uint8_t id)const;
 private:
     MotorDataMgr();
-signals:
-    void dataChanged(const quint8 nDeviceId,const Actuator::ActuatorAttribute attrId,QVariant value);
-    void errorOccured(const quint8 nDeviceId,const quint16 erroId,QString errorInfo);
-    void setProxyCallback(const quint8 nProxyId,bool bSuccess);
+//signals:
+public:
+    void dataChanged(const uint64_t longId,const Actuator::ActuatorAttribute attrId,double value);
+    void errorOccured(const uint64_t longId,const uint16_t erroId,std::string errorInfo);
 private:
     class GC{
     public:
@@ -146,14 +162,16 @@ private:
         static GC gc;
     };
 private:
-    ActuatorData * getMotorDataById(const quint8 nId)const;
-    ActuatorData * getMotorDataByNewId(const quint8 nId)const;//if device id changed by user, sometimes we need to find the motorData using NewId we set before.
-    ActuatorData * getMotorDataByMac(const quint32 nMac)const;
-    bool checkIdUnique(QMap<quint8,quint32> dataMap)const;//check all motors's id si unique or not, if not warning and exit the app
-    void handleUnuiqueError(QMap<quint8,quint32> dataMap);
-    QVariant getMotorDataAttrValue(const quint8 nDeviceId,const Actuator::ActuatorAttribute attrId)const;
+    ActuatorData * getMotorDataById(const uint8_t nId)const;
+    ActuatorData * getMotorDataByLongId(const uint64_t longId)const;
+    ActuatorData * getMotorDataByNewId(const uint64_t longId)const;//if device id changed by user, sometimes we need to find the motorData using NewId we set before.
+    ActuatorData * getMotorDataByMac(const uint32_t nMac)const;
+//    bool checkIdUnique(std::map<uint8_t,uint32_t> dataMap)const;//check all motors's id si unique or not, if not warning and exit the app
+//    void handleUnuiqueError(std::map<uint8_t,uint32_t> dataMap);
+    double getMotorDataAttrValue(const uint64_t longId,const Actuator::ActuatorAttribute attrId)const;
+    bool waitForACK(const ActuatorData * pData,const ActuatorAttribute attrId);
 private:
-    QList<ActuatorData *> m_allMotorDatas;
+    std::list<ActuatorData *> m_allMotorDatas;
     static MotorDataMgr * m_pMgr;
 };
 

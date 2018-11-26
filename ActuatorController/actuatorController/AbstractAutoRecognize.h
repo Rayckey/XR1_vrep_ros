@@ -1,25 +1,24 @@
 ﻿#ifndef ABSTRACTAUTORECONGNIZE_H
 #define ABSTRACTAUTORECONGNIZE_H
-#include <QObject>
-#include <QMap>
+#include <map>
 
-class AbstractAutoRecognize : public QObject
+class AbstractAutoRecognize
 {
-    Q_OBJECT
 public:
     static AbstractAutoRecognize * getInstance(int nType);
-    explicit AbstractAutoRecognize(QObject *parent = 0);
+    explicit AbstractAutoRecognize();
+    virtual ~AbstractAutoRecognize();
     virtual void startRecognize()=0;
     virtual void waitTimeout()=0;
+    void clearInfo();
 public:
-    void addMototInfo(quint8 nDeviceId,quint32 nDeviceMac);
-    QMap<quint8,quint32> getMotorsInfo()const{return m_motorsInfo;}
-signals:
-
-public slots:
-
+    void addMototInfo(uint8_t nDeviceId,uint32_t nDeviceMac, uint32_t communicationId);
+    std::map<uint8_t,uint32_t> getMotorsInfo()const{return m_motorsInfo;}
 protected:
-    QMap<quint8,quint32> m_motorsInfo;
+    std::map<uint8_t,uint32_t> m_motorsInfo;
+    std::multimap<uint32_t,std::pair<uint8_t,uint32_t>> m_ipMotors;//以连接ip分组的执行器信息
+private:
+    bool m_bUniqueId;
 };
 
 #endif // ABSTRACTAUTORECONGNIZE_H

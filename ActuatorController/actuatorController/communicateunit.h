@@ -1,50 +1,59 @@
 ﻿#ifndef COMMUNICATEUNIT_H
 #define COMMUNICATEUNIT_H
 
-#include <QObject>
-#include <QMutex>
-#include <QMap>
-#include <QVector>
+#include <map>
+#include <vector>
+#include <list>
+#include <mutex>
+#include "CSignal.hpp"
+#include <thread>
 
-
-class CommunicateUnit : public QObject
+class CommunicateUnit
 {
-    Q_OBJECT
 public:
-    explicit CommunicateUnit(quint32 unitId,QObject *parent = 0);
-
-signals:
-    void response(quint32 unitId,QByteArray responseData);
-    void error(QString errorString);
-    void finished(quint32 unitId);
+    explicit CommunicateUnit(uint32_t unitId);
+    virtual ~CommunicateUnit();
+//signals:
+    void response(uint32_t unitId,std::vector<uint8_t> responseData);
+    void error(std::string errorString);
+    void finished(uint32_t unitId);
 public:
-    void addRelateId(quint8 id);
-    void switchOldRelateIdToNewRelateId(quint8 oldId,quint8 newId);
-    void setRelateIdList(const QList<quint8> &idList);
-    bool isContainsRelateId(const quint8 id)const;
-    quint32 getUnitId()const{
+    void addRelateId(uint8_t id);
+    void switchOldRelateIdToNewRelateId(uint8_t oldId,uint8_t newId);
+    void setRelateIdList(const std::list<uint8_t> &idList);
+    bool isContainsRelateId(const uint8_t id)const;
+    uint32_t getUnitId()const{
         return m_nUnitId;
     }
-    void sendData(const QByteArray & sendData);
-    void stopCommunication();
+    void sendData(const std::vector<uint8_t> & sendData);
+
     bool hasDataWaiting();
     bool isAvailable()const;
-    void setConnectionStatus(quint8 nStatus);
-    quint8 getConnectionStatus()const;
-    virtual QString getCommunicationUnitName()=0;
-public slots:
+    void setConnectionStatus(uint8_t nStatus);
+    uint8_t getConnectionStatus()const;
+    virtual std::string getCommunicationUnitName()const=0;
+//public slots:
     virtual void progress()=0;
+    void setSoftwareVersion(uint16_t version);
+    uint16_t readSoftwareVersion()const;
+    void setHardwareVersion(uint16_t version);
+    uint16_t readHardwareVersion()const;
 protected:
-
-    QMap<quint8,QVector <QByteArray>> m_dataMap;
-    QVector<QByteArray> m_dataVector;
-    QMutex m_qmMutex;
+    void stopCommunication();
+    std::map<uint8_t,std::vector <std::vector<uint8_t>>> m_dataMap;
+    std::vector<std::vector<uint8_t>> m_dataVector;
+    std::vector<std::vector<uint8_t>> m_dataVectorFast;//datas in this vector will be send very fast
+    std::mutex m_qmMutex;
     bool m_bStop;
-    quint32 m_nUnitId;
-    quint8 m_nConnectionStatus;
-    QList<quint8> m_relateIdList;//motors's ids whitch communicate via this unit
-    //QHostAddress m_unitAddr;
-
+    std::thread *m_pCommunicateThread;
+    uint32_t m_nUnitId;
+    uint8_t m_nConnectionStatus;
+    std::list<uint8_t> m_relateIdList;//motors's ids whitch communicate via this unit
+    uint16_t m_hardwareVersion;
+    uint16_t m_softwareVersion;
+    //asio m_unitAddr;
+public:
+    CSignal<uint32_t,std::vector<uint8_t>& > m_sResponse;
 
 };
 

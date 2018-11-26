@@ -1,19 +1,20 @@
 ﻿#ifndef SERIALAUTORECOGNIZE_H
 #define SERIALAUTORECOGNIZE_H
+#include <vector>
 #include "AbstractAutoRecognize.h"
-
+#include "serial/serial.h"
 
 class SerialAutoRecognize : public AbstractAutoRecognize
 {
-    Q_OBJECT
+
 public:
-    explicit SerialAutoRecognize(QObject *parent = 0);
+    explicit SerialAutoRecognize();
     void startRecognize()override;
     void waitTimeout()override;
 private:
     void findAvailablePorts();
 private:
-    QList <int> m_portList;
+    std::vector <serial::PortInfo> m_portList;
 };
 
 #endif // SERIALAUTORECOGNIZE_H
