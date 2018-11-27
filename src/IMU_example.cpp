@@ -29,6 +29,10 @@ void MyPlugin::gettingIMUStarted() {
 
 
 
+  // 3.0 needs this timer
+  QTimer * ControllerTimer = new QTimer;
+  connect(ControllerTimer , &QTimer::timeout , [=]{ptr_AC->processEvents();});
+  ControllerTimer->start(3);
 
 
   ROS_INFO("Setting IMU Timers");
