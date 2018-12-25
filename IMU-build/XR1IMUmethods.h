@@ -2,9 +2,10 @@
 #define XR1IMUMETHODS_H
 
 
-#include "eigen3/Eigen/Dense"
+#include "Eigen/Dense"
 #include "xr1IMUdefine.h"
 #include "xr1define.h"
+#include "Eigen/StdVector"
 #include <vector>
 
 using namespace Eigen;
@@ -12,15 +13,16 @@ using namespace Eigen;
 class XR1IMUmethods
 {
 public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
     XR1IMUmethods();
 
     std::vector<double> getJointAngles();
 
     void Initialize();
 
-    void quaternioncallback(u_int8_t id , double w, double x, double y , double z );
+    void quaternioncallback(uint8_t id , double w, double x, double y , double z );
 
-    std::vector<u_int8_t> checkModules();
+    std::vector<uint8_t> checkModules();
 
 
 
@@ -35,6 +37,8 @@ private:
     Matrix3d EulerXYZ(double x , double y , double z ) ;
 
     Matrix3d EulerZYX(double x , double y , double z ) ;
+
+    void Euler2YXZ(double x , double y , double z , Matrix3d & output);
 
     Vector3d Matrix2ZYX(Matrix3d input);
 
@@ -54,11 +58,29 @@ private:
 
     double tinyCurvefit(double double_index , double pt_s , double pt_1 , double pt_2 , double pt_e);
 
-    std::vector<Quaterniond> Init_qs;
 
-    std::vector<Quaterniond> Raw_qs;
+    std::vector<Quaterniond,Eigen::aligned_allocator<Quaterniond> > Init_qs;
 
-    std::vector<Quaterniond> Cooked_qs;
+    std::vector<Quaterniond,Eigen::aligned_allocator<Quaterniond> > Raw_qs;
+
+    std::vector<Quaterniond,Eigen::aligned_allocator<Quaterniond> > Cooked_qs;
+
+
+//    std::vector<Quaterniond> Init_qs;
+
+//    std::vector<Quaterniond> Raw_qs;
+
+//    std::vector<Quaterniond> Cooked_qs;
+
+
+    //Temp varibles -----
+    Matrix3d pre_rot;
+
+    Matrix3d pre_pre_rot;
+    Matrix3d rot;
+    Quaterniond temp_q;
+    Quaterniond temp_temp_q;
+    Quaterniond new_q;
 
     std::vector<Vector3d> Cooked_vs;
 
@@ -78,9 +100,14 @@ private:
 
     double Thumb_Ratios;
 
+
+    Vector3d unit_y;
+    Vector3d unit_x;
+    Vector3d unit_z;
+
     std::vector<bool> Uncharted_Chart;
 
-    std::vector<u_int8_t> Lost_Ids;
+    std::vector<uint8_t> Lost_Ids;
 
 };
 

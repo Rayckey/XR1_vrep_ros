@@ -33,7 +33,7 @@
 #include "std_msgs/Bool.h"
 #include "std_msgs/Int32.h"
 #include "vrep_test/InertiaPara.h"
-#include "geometry_msgs/Twist.h"
+#include <geometry_msgs/Twist.h>
 #include <QMessageBox>
 #include <QLabel>
 #include <QGroupBox>
@@ -259,7 +259,7 @@ private slots:
 
   void quatimercallback();
 
-  void quaternioncallback(uint8_t id , double w, double x, double y , double z );
+  void quaternioncallback(uint64_t id , double w, double x, double y , double z );
 
   Eigen::Vector3d quaternion2ZYX(double w, double qx, double qy , double qz );
 

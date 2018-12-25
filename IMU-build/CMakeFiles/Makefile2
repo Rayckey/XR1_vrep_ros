@@ -57,7 +57,7 @@ EQUALS = =
 CMAKE_SOURCE_DIR = /home/rocky/qtXR1/XR1IMU
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/rocky/catkin_ws/src/vrep_test/IMU-build
+CMAKE_BINARY_DIR = /home/rocky/rocky_ws/src/vrep_test/IMU-build
 
 #=============================================================================
 # Target rules for target CMakeFiles/XR1IMU.dir
@@ -66,7 +66,7 @@ CMAKE_BINARY_DIR = /home/rocky/catkin_ws/src/vrep_test/IMU-build
 CMakeFiles/XR1IMU.dir/all:
 	$(MAKE) -f CMakeFiles/XR1IMU.dir/build.make CMakeFiles/XR1IMU.dir/depend
 	$(MAKE) -f CMakeFiles/XR1IMU.dir/build.make CMakeFiles/XR1IMU.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rocky/catkin_ws/src/vrep_test/IMU-build/CMakeFiles --progress-num=1,2 "Built target XR1IMU"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/home/rocky/rocky_ws/src/vrep_test/IMU-build/CMakeFiles --progress-num=1,2 "Built target XR1IMU"
 .PHONY : CMakeFiles/XR1IMU.dir/all
 
 # Include target in all.
@@ -76,9 +76,9 @@ all: CMakeFiles/XR1IMU.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/XR1IMU.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/rocky/catkin_ws/src/vrep_test/IMU-build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rocky/rocky_ws/src/vrep_test/IMU-build/CMakeFiles 2
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/XR1IMU.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/rocky/catkin_ws/src/vrep_test/IMU-build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/rocky/rocky_ws/src/vrep_test/IMU-build/CMakeFiles 0
 .PHONY : CMakeFiles/XR1IMU.dir/rule
 
 # Convenience name for target.

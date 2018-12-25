@@ -44,7 +44,7 @@ void MyPlugin::gettingIMUStarted() {
 
 
   //Connect the Actuator Controller Signal to a member function
-  ptr_AC->m_sQuaternion->connect_member(this , &MyPlugin::quaternioncallback);
+  ptr_AC->m_sQuaternionL->connect_member(this , &MyPlugin::quaternioncallback);
   ptr_AC->m_sError->s_Connect([](uint8_t id,uint16_t error,std::string msg){
     std::cout << msg << std::endl;
   });
@@ -104,10 +104,21 @@ void MyPlugin::quatimercallback()
 
 
 
-void MyPlugin::quaternioncallback(uint8_t id , double w, double x , double y , double z) {
+void MyPlugin::quaternioncallback(uint64_t id , double w, double x , double y , double z) {
 
   // Just feed all the information to XR1IMU library
-  XR1IMUptr->quaternioncallback( id ,  w,  x ,  y ,  z);
+  // XR1IMUptr->quaternioncallback( id ,  w,  x ,  y ,  z);
+
+
+   if (id == ActuatorController::toLongId("192.168.1.4",0)){
+
+   }
+       // XR1_ptr->tiltCallback(w, x , y , z);
+
+   // If it is a MoCap module
+   else {
+    XR1IMUptr->quaternioncallback(ActuatorController::toByteId(id),w,x,y,z);
+   }
 }
 
 
@@ -121,6 +132,8 @@ void MyPlugin::quaterion2joint() {
   std::vector<double> angles = XR1IMUptr->getJointAngles();
 
 
+
+  // ROS_INFO("[%d][%f]" , XR1::Left_Wrist_Z , angles[XR1::Left_Wrist_Z]);
   //Check if any module is missing or lagging
   std::vector<u_int8_t> missed_ids = XR1IMUptr->checkModules();
 

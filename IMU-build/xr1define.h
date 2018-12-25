@@ -12,6 +12,12 @@ enum BodyGroups{
     OmniWheels = 1,
 };
 
+enum XR1Mode{
+    DirectMode = 1,
+    DriveMode = 5,
+    MoCapMode = 6,
+};
+
 enum ActuatorID{
     Left_Front_Wheel = 1 ,
     Right_Front_Wheel = 2,
@@ -57,27 +63,23 @@ enum ChainOperationMode{
     IKMode = 4,
 };
 
-enum MetaErrorDefine{
+enum XR1State{
     EVERYTHING_IS_FINE = 0,
-    ERR_ID_NUM = 0x806,
-    ERR_NOT_LAUNCH = 0x807,
-    ERR_CALULATION = 0x808,
-};
-
-
-enum OmniControlMode{
-    XBoneController,
-    DirectControl,
-    External,
+    ERR_NOT_LAUNCH = 201,
+    ERR_CALULATION = 202,
+    COLLISION_OCCURED = 203,
+    LOCKED = 204,
 };
 
 
 enum ValuesOptions{
     ActualPosition,
     ActualVelocity,
+    ActualAcceleration,
     ActualCurrent,
     TargetPosition,
     TargetVelocity,
+    TargetAcceleration,
     TargetCurrent,
 };
 
@@ -93,6 +95,23 @@ enum PathPlaningMethods{
     KPIECE = 102,
     PDST = 103,
 };
+
+
+enum HandGripActions{
+    HandGrip = 401,
+    HandRelease = 402,
+};
+
+
+enum InverseDynamicsOptions{
+    None = 0,
+    SpringDamper = 100,
+    GravityCompensation = 101,
+    FullDynamics = 102,
+    FullDynamics_PASSIVE = 103,
+};
+
+
 
 
 }

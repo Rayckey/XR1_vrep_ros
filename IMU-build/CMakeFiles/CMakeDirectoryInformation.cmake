@@ -3,7 +3,7 @@
 
 # Relative path conversion top directories.
 set(CMAKE_RELATIVE_PATH_TOP_SOURCE "/home/rocky/qtXR1/XR1IMU")
-set(CMAKE_RELATIVE_PATH_TOP_BINARY "/home/rocky/catkin_ws/src/vrep_test/IMU-build")
+set(CMAKE_RELATIVE_PATH_TOP_BINARY "/home/rocky/rocky_ws/src/vrep_test/IMU-build")
 
 # Force unix paths in dependencies.
 set(CMAKE_FORCE_UNIX_PATHS 1)
