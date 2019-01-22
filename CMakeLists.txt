@@ -65,7 +65,7 @@ add_service_files(DIRECTORY srv
 
 catkin_package(
   LIBRARIES ${PROJECT_NAME}
-CATKIN_DEPENDS roscpp rqt_gui_cpp std_msgs message_runtime cv_bridge geometry_msgs image_transport
+  CATKIN_DEPENDS roscpp rqt_gui_cpp std_msgs message_runtime cv_bridge geometry_msgs image_transport
   #INCLUDE_DIRS ${EIGEN3_INCLUDE_DIRS}
 )
 
